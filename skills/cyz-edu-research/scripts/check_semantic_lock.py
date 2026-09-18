@@ -157,10 +157,6 @@ def dependency_failure(message: str) -> ValueError:
     return ValueError(f"{message}; no fallback was used")
 
 
-def normalized_path(path: Path) -> str:
-    return str(path.expanduser().resolve()).casefold()
-
-
 def frontmatter(text: str) -> str:
     match = re.match(r"\A(?:\ufeff)?---[ \t]*\r?\n(.*?)\r?\n---", text, re.S)
     return match.group(1) if match else ""
@@ -295,11 +291,15 @@ def resolve_language_dependency(
         raise dependency_failure(
             f"dependency lock has no approved installations for {dependency_name!r}"
         )
-    approved = {
-        normalized_path(Path(str(item["path"]))): item
+    approved_metrics = [
+        {
+            "fileCount": item.get("fileCount"),
+            "bytes": item.get("bytes"),
+            "directorySha256": item.get("directorySha256"),
+        }
         for item in installations
-        if isinstance(item, dict) and isinstance(item.get("path"), str)
-    }
+        if isinstance(item, dict)
+    ]
     searched = []
     for root in skills_roots:
         dependency_dir = root.expanduser().resolve() / dependency_name
@@ -307,18 +307,8 @@ def resolve_language_dependency(
         skill_path = dependency_dir / "SKILL.md"
         if not skill_path.is_file():
             continue
-        installation = approved.get(normalized_path(dependency_dir))
-        if installation is None:
-            raise dependency_failure(
-                f"dependency path {dependency_dir} is not an approved installation"
-            )
         actual = canonical_directory_metrics(dependency_dir)
-        expected = {
-            "fileCount": installation.get("fileCount"),
-            "bytes": installation.get("bytes"),
-            "directorySha256": installation.get("directorySha256"),
-        }
-        if actual != expected:
+        if actual not in approved_metrics:
             raise dependency_failure(
                 f"directory hash mismatch for locked dependency {dependency_name!r}"
             )

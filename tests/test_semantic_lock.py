@@ -7,7 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -62,6 +62,10 @@ def directory_metrics(root: Path) -> dict[str, object]:
         "bytes": sum(item[2] for item in entries),
         "directorySha256": hashlib.sha256(canonical).hexdigest(),
     }
+
+
+def serialized_path_is_absolute(value: str) -> bool:
+    return PureWindowsPath(value).is_absolute() or PurePosixPath(value).is_absolute()
 
 
 def replace_frontmatter_value(path: Path, key: str, value: str) -> None:
@@ -271,7 +275,14 @@ class SemanticLockTests(unittest.TestCase):
             })
             for installation in dependency["installations"]:
                 self.assertRegex(installation["directorySha256"], r"^[0-9a-f]{64}$")
-                self.assertTrue(Path(installation["path"]).is_absolute())
+                self.assertTrue(serialized_path_is_absolute(installation["path"]))
+
+    def test_serialized_absolute_paths_are_validated_independently_of_host_os(self):
+        self.assertTrue(serialized_path_is_absolute(r"C:\Users\W\.codex\skills"))
+        self.assertTrue(serialized_path_is_absolute(r"\\server\share\skills"))
+        self.assertTrue(serialized_path_is_absolute("/opt/agent/skills"))
+        self.assertFalse(serialized_path_is_absolute("relative/skills"))
+        self.assertFalse(serialized_path_is_absolute(r"C:relative\skills"))
 
     def test_available_host_installations_match_canonical_hashes(self):
         lock = json.loads(LOCK.read_text(encoding="utf-8"))
@@ -370,7 +381,7 @@ class SemanticLockTests(unittest.TestCase):
         self.assertIn("no fallback was used", result.stderr)
         self.assertNotIn('"name": "qu-ai-wei"', result.stdout)
 
-    def test_dependency_resolution_rejects_missing_lock_unapproved_root_and_wrong_hash(self):
+    def test_dependency_resolution_accepts_matching_copy_but_rejects_missing_lock_and_wrong_hash(self):
         before, after = self.copied_text_fixture()
         approved_root = self.copied_dependency_fixture("humanizer-zh", "humanizer")
         dependency_lock = self.write_dependency_lock(approved_root)
@@ -392,7 +403,7 @@ class SemanticLockTests(unittest.TestCase):
 
         unapproved_root = self.temp_root / "unapproved-root"
         shutil.copytree(approved_root, unapproved_root)
-        unapproved = run_script(
+        alternate_path = run_script(
             CHECK,
             before,
             after,
@@ -404,9 +415,15 @@ class SemanticLockTests(unittest.TestCase):
             dependency_lock,
             "--json",
         )
-        self.assertEqual(2, unapproved.returncode)
-        self.assertIn("is not an approved installation", unapproved.stderr)
-        self.assertIn("no fallback was used", unapproved.stderr)
+        self.assertEqual(
+            0, alternate_path.returncode, alternate_path.stdout + alternate_path.stderr
+        )
+        alternate_payload = json.loads(alternate_path.stdout)
+        self.assertEqual("humanizer-zh", alternate_payload["dependency"]["name"])
+        self.assertEqual(
+            str(unapproved_root / "humanizer-zh" / "SKILL.md"),
+            alternate_payload["dependency"]["path"],
+        )
 
         (approved_root / "humanizer-zh" / "SKILL.md").write_text(
             "---\nname: humanizer-zh\nlicense: MIT\n---\n# tampered\n",
