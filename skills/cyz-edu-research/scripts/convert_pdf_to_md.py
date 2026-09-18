@@ -198,23 +198,71 @@ def parse_page_spec(spec: str, page_count: int) -> list[int]:
     return sorted(pages)
 
 
+def is_full_document_pages(value: Any) -> bool:
+    return value is None or (type(value) is str and value == "")
+
+
+DESK_OPTION_FIELDS = (
+    "provider", "backend", "cloudMode", "method", "language", "formula", "table",
+    "imageAnalysis", "effort", "formats", "timeout", "pages", "force",
+    "extraArgs", "env",
+)
+KEY_OPTION_FIELDS = tuple(key for key in DESK_OPTION_FIELDS if key != "force")
+
+
+def validated_desk_options(options: Any) -> dict[str, Any]:
+    if not isinstance(options, dict):
+        raise ValueError("MinerU task record lacks conversion options")
+    unknown = set(options) - set(DESK_OPTION_FIELDS)
+    missing = set(DESK_OPTION_FIELDS) - set(options)
+    if unknown:
+        raise ValueError("MinerU task contains unsupported option fields")
+    if missing:
+        raise ValueError("MinerU task lacks required options: " + ", ".join(sorted(missing)))
+    if options["provider"] != "local" or options["backend"] != "pipeline":
+        raise ValueError("MinerU cache requires the local Pipeline provider")
+    if options["cloudMode"] != "extract":
+        raise ValueError("cloudMode must be extract for local tasks")
+    if options["method"] not in {"auto", "txt", "ocr"}:
+        raise ValueError("method is unsupported")
+    if not isinstance(options["language"], str) or not re.fullmatch(
+        r"[A-Za-z][A-Za-z0-9_-]{0,31}", options["language"]
+    ):
+        raise ValueError("language is invalid")
+    for field in ("formula", "table", "imageAnalysis", "force"):
+        if type(options[field]) is not bool:
+            raise ValueError(f"{field} must be boolean")
+    if options["effort"] not in {"low", "medium", "high"}:
+        raise ValueError("effort is unsupported")
+    formats = options["formats"]
+    if (
+        not isinstance(formats, list)
+        or not all(isinstance(value, str) for value in formats)
+        or len(formats) != len(set(formats))
+        or set(formats) != {"md", "json"}
+    ):
+        raise ValueError("formats must be the unique local md/json set")
+    if type(options["timeout"]) is not int or options["timeout"] <= 0:
+        raise ValueError("timeout must be a positive integer")
+    if not is_full_document_pages(options["pages"]):
+        raise ValueError("MinerU cache requires a full-document task")
+    if options["extraArgs"] != []:
+        raise ValueError("extraArgs must be empty")
+    if options["env"] != {}:
+        raise ValueError("env must be empty")
+    return {key: options[key] for key in DESK_OPTION_FIELDS}
+
+
 def mineru_task_binding(task: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(task, dict):
         raise ValueError("MinerU task record must be a JSON object")
-    options = task.get("options")
+    options = validated_desk_options(task.get("options"))
     settings = task.get("runtimeSettings")
-    if not isinstance(options, dict) or not isinstance(settings, dict):
+    if not isinstance(settings, dict):
         raise ValueError("MinerU task record lacks options or runtime settings")
-    option_fields = ("provider", "backend", "method", "language", "formula", "table", "pages")
     setting_fields = ("modelSource", "offline", "modelRoot")
-    if any(key not in options for key in option_fields):
-        raise ValueError("MinerU task record lacks conversion options")
     if any(key not in settings for key in setting_fields):
         raise ValueError("MinerU task record lacks runtime settings")
-    if options["provider"] != "local" or options["backend"] != "pipeline":
-        raise ValueError("MinerU cache requires the local Pipeline provider")
-    if options["pages"] is not None:
-        raise ValueError("MinerU cache requires a full-document task")
     if settings["offline"] is not True:
         raise ValueError("MinerU cache requires offline runtime settings")
     source_hash = task.get("source_sha256")
@@ -226,10 +274,12 @@ def mineru_task_binding(task: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("MinerU task record lacks a Desk cache key")
     if not isinstance(runtime_version, str) or not runtime_version:
         raise ValueError("MinerU task record lacks a runtime version")
+    canonical_options = {key: options[key] for key in KEY_OPTION_FIELDS}
+    canonical_options["pages"] = None
     return {
         "source_sha256": source_hash,
         "desk_cache_key": cache_key,
-        "options": {key: options[key] for key in option_fields},
+        "options": canonical_options,
         "runtime_version": runtime_version,
         "runtime_settings": {key: settings[key] for key in setting_fields},
     }
@@ -299,7 +349,7 @@ def validate_cache(output_dir: Path, fingerprint: dict[str, Any]) -> tuple[bool,
             if not asset.is_relative_to(output_dir.resolve()) or not asset.is_file() or asset.stat().st_size == 0:
                 return False, "missing or unsafe cache asset"
     if manifest.get("extraction_source") == "mineru_desk_local":
-        binding = fingerprint.get("mineru_request")
+        binding = fingerprint.get("mineru_request", manifest.get("mineru_request"))
         if not isinstance(binding, dict):
             return False, "MinerU cache lacks a pinned mineru_request fingerprint"
         manifest_mineru = manifest.get("mineru")
@@ -312,6 +362,7 @@ def validate_cache(output_dir: Path, fingerprint: dict[str, Any]) -> tuple[bool,
         lineage = manifest_mineru.get("lineage_task_ids")
         if (
             status not in {"completed", "reused"}
+            or binding.get("source_sha256") != fingerprint.get("pdf_sha256")
             or manifest_mineru.get("source_sha256") != fingerprint.get("pdf_sha256")
             or not isinstance(task_id, str)
             or not isinstance(base_task_id, str)
@@ -337,7 +388,7 @@ def validate_cache(output_dir: Path, fingerprint: dict[str, Any]) -> tuple[bool,
             not isinstance(options, dict)
             or options.get("provider") != "local"
             or options.get("backend") != "pipeline"
-            or options.get("pages") is not None
+            or not is_full_document_pages(options.get("pages"))
             or not isinstance(settings, dict)
             or settings.get("offline") is not True
         ):

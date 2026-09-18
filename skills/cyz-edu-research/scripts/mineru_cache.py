@@ -6,6 +6,14 @@ import re
 import shutil
 
 
+DESK_OPTION_FIELDS = (
+    'provider', 'backend', 'cloudMode', 'method', 'language', 'formula', 'table',
+    'imageAnalysis', 'effort', 'formats', 'timeout', 'pages', 'force',
+    'extraArgs', 'env'
+)
+KEY_OPTION_FIELDS = tuple(key for key in DESK_OPTION_FIELDS if key != 'force')
+
+
 def digest(path):
     with path.open('rb') as stream:
         return hashlib.file_digest(stream, 'sha256').hexdigest()
@@ -18,13 +26,56 @@ def contained(path, root):
     return path
 
 
+def is_full_document_pages(value):
+    return value is None or (type(value) is str and value == '')
+
+
+def validate_desk_options(options):
+    if not isinstance(options, dict):
+        raise ValueError('MinerU task options are missing')
+    unknown = set(options) - set(DESK_OPTION_FIELDS)
+    missing = set(DESK_OPTION_FIELDS) - set(options)
+    if unknown:
+        raise ValueError('MinerU task contains unsupported option fields')
+    if missing:
+        raise ValueError('MinerU task options are missing required fields: ' + ', '.join(sorted(missing)))
+    if options['provider'] != 'local' or options['backend'] != 'pipeline':
+        raise ValueError('Only local Pipeline tasks may become canonical caches')
+    if options['cloudMode'] != 'extract':
+        raise ValueError('cloudMode must be extract for local tasks')
+    if options['method'] not in {'auto', 'txt', 'ocr'}:
+        raise ValueError('method is unsupported')
+    if not isinstance(options['language'], str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,31}', options['language']):
+        raise ValueError('language is invalid')
+    for field in ('formula', 'table', 'imageAnalysis', 'force'):
+        if type(options[field]) is not bool:
+            raise ValueError(f'{field} must be boolean')
+    if options['effort'] not in {'low', 'medium', 'high'}:
+        raise ValueError('effort is unsupported')
+    formats = options['formats']
+    if (
+        not isinstance(formats, list)
+        or not all(isinstance(value, str) for value in formats)
+        or len(formats) != len(set(formats))
+        or set(formats) != {'md', 'json'}
+    ):
+        raise ValueError('formats must be the unique local md/json set')
+    if type(options['timeout']) is not int or options['timeout'] <= 0:
+        raise ValueError('timeout must be a positive integer')
+    if not is_full_document_pages(options['pages']):
+        raise ValueError('Only full-document local tasks may become canonical caches')
+    if options['extraArgs'] != []:
+        raise ValueError('extraArgs must be empty')
+    if options['env'] != {}:
+        raise ValueError('env must be empty')
+    return {key: options[key] for key in DESK_OPTION_FIELDS}
+
+
 def import_task(task_json, pdf, output, pdf_hash, page_count, title, generated):
     task = json.loads(Path(task_json).read_text(encoding='utf-8-sig'))
     if task.get('status') not in ('completed', 'reused'):
         raise ValueError('MinerU task has not completed')
-    options = task.get('options', {})
-    if options.get('provider') != 'local' or options.get('pages') is not None:
-        raise ValueError('Only full-document local tasks may become canonical caches')
+    options = validate_desk_options(task.get('options'))
     if Path(task.get('source', '')).resolve() != pdf.resolve():
         raise ValueError('MinerU task source does not match requested PDF')
     if task.get('source_sha256') != pdf_hash or digest(pdf) != pdf_hash:
@@ -70,7 +121,7 @@ def import_task(task_json, pdf, output, pdf_hash, page_count, title, generated):
     for field in ('modelSource', 'offline', 'modelRoot'):
         if field not in settings:
             raise ValueError('Missing task runtime settings for source verification')
-    if settings['offline'] is not True or options.get('backend') != 'pipeline':
+    if settings['offline'] is not True:
         raise ValueError('Importer supports offline local Pipeline tasks only')
     payload = {'digest': pdf_hash, 'conversion': {k:v for k,v in options.items() if k != 'force'},
                'version': version, 'server': '', 'vlmUrl': '',
@@ -89,6 +140,8 @@ def import_task(task_json, pdf, output, pdf_hash, page_count, title, generated):
             raise ValueError('Unsupported MinerU block: retain raw output and use explicit fallback')
         if type(block.get('page_idx')) is not int or block['page_idx'] not in expected:
             raise ValueError('Invalid MinerU block page index')
+    canonical_options = {k: options[k] for k in KEY_OPTION_FIELDS}
+    canonical_options['pages'] = None
     metadata = {
         'task_id': task_id, 'task_status': task['status'],
         'source_sha256': pdf_hash, 'backend': middle.get('_backend'),
@@ -98,7 +151,7 @@ def import_task(task_json, pdf, output, pdf_hash, page_count, title, generated):
         'base_task_id': base_task_id, 'lineage_task_ids': lineage,
         'reused_from_task_id': task.get('reused_from_task_id'),
         'version': middle.get('_version_name'),
-        'options': {k: options.get(k) for k in ('provider', 'backend', 'method', 'language', 'formula', 'table', 'pages')},
+        'options': canonical_options,
         'content_list_sha256': digest(content_path), 'middle_sha256': digest(middle_path),
         'raw_markdown': str(md), 'raw_output_dir': str(root),
     }

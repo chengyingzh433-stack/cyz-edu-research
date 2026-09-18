@@ -1,5 +1,6 @@
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import shutil
@@ -7,6 +8,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -70,10 +72,17 @@ def write_cache_fixture(
         "options": {
             "provider": "local",
             "backend": "pipeline",
+            "cloudMode": "extract",
             "method": "auto",
             "language": "ch",
             "formula": True,
             "table": True,
+            "imageAnalysis": False,
+            "effort": "medium",
+            "formats": ["md", "json"],
+            "timeout": 3600,
+            "extraArgs": [],
+            "env": {},
             "pages": None,
         },
         "runtime_version": "mineru-cli.py, version 3.4.5",
@@ -188,11 +197,19 @@ class CacheIntegrityTests(unittest.TestCase):
             "options": {
                 "provider": provider,
                 "backend": "pipeline",
+                "cloudMode": "extract",
                 "method": "auto",
                 "language": "ch",
                 "formula": True,
                 "table": True,
-                "pages": None,
+                "imageAnalysis": False,
+                "effort": "medium",
+                "formats": ["md", "json"],
+                "timeout": 3600,
+                "pages": "",
+                "force": False,
+                "extraArgs": [],
+                "env": {},
             },
             "markdown": str(raw / "document.md"),
             "outputDir": str(raw),
@@ -358,6 +375,34 @@ class CacheIntegrityTests(unittest.TestCase):
         self.assertFalse(valid)
         self.assertIn("asset metadata", reason)
 
+    def test_m02_cli_check_cache_reuses_intrinsically_valid_mineru_cache(self):
+        source = self.temp_root / "probe.pdf"
+        source.write_bytes(b"source")
+        output = self.temp_root / "probe-cache"
+        write_cache_fixture(output, sha256(source))
+        stdout = io.StringIO()
+        argv = [
+            str(CONVERT.__file__),
+            str(source),
+            "--output-dir", str(output),
+            "--check-cache",
+        ]
+        with (
+            mock.patch("sys.argv", argv),
+            mock.patch.object(CONVERT, "get_pdf_info", return_value=(2, "Fixture")),
+            mock.patch.object(
+                CONVERT,
+                "mineru_task_binding",
+                side_effect=AssertionError("Desk/task discovery must not run"),
+            ) as discovery,
+            mock.patch("sys.stdout", stdout),
+        ):
+            result = CONVERT.main()
+
+        self.assertEqual(0, result, stdout.getvalue())
+        self.assertIn("CACHE_REUSED", stdout.getvalue())
+        discovery.assert_not_called()
+
     def test_m03_rejects_wrong_source_key_partial_pages_missing_assets_running_and_cloud(self):
         variants = {
             "wrong_source_hash": lambda task, raw: task.__setitem__(
@@ -399,6 +444,94 @@ class CacheIntegrityTests(unittest.TestCase):
         task_json.write_text(json.dumps(task), encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "full-document"):
             self.import_fixture(source, task_json, output)
+
+    def test_m03_full_document_pages_accepts_null_or_empty_string_only(self):
+        source, task_json, output, task = self.copied_desk_fixture()
+        task["options"]["pages"] = ""
+        task["key"] = desk_key(sha256(source), task)
+        task_json.write_text(json.dumps(task), encoding="utf-8")
+
+        _, source_map, _ = self.import_fixture(source, task_json, output)
+
+        self.assertIsNone(source_map["mineru"]["options"]["pages"])
+        binding = CONVERT.mineru_task_binding(task)
+        self.assertIsNone(binding["options"]["pages"])
+
+        for invalid in ([], 0, False, "1"):
+            with self.subTest(import_pages=repr(invalid)):
+                source, task_json, output, task = self.copied_desk_fixture()
+                task["options"]["pages"] = invalid
+                task["key"] = desk_key(sha256(source), task)
+                task_json.write_text(json.dumps(task), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "full-document"):
+                    self.import_fixture(source, task_json, output)
+
+        invalid_options = {
+            "cloudMode": ("upload", "cloudMode"),
+            "env": ({"TOKEN": "secret"}, "env"),
+            "extraArgs": (["--unsafe"], "extraArgs"),
+            "formats": ("markdown", "formats"),
+            "imageAnalysis": ("yes", "imageAnalysis"),
+            "effort": ("", "effort"),
+            "timeout": (False, "timeout"),
+        }
+        for field, (invalid, message) in invalid_options.items():
+            with self.subTest(import_field=field):
+                source, task_json, output, task = self.copied_desk_fixture()
+                task["options"][field] = invalid
+                task["key"] = desk_key(sha256(source), task)
+                task_json.write_text(json.dumps(task), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, message):
+                    self.import_fixture(source, task_json, output)
+
+        source, _, _, task = self.copied_desk_fixture(status="reused")
+        base = dict(task, id="base-1", status="completed")
+        base["options"] = dict(task["options"], pages="")
+        base["log"] = "mineru-cli.py, version 3.4.5\n"
+        middle = dict(task, id="reuse-1", status="reused", reusedFrom="base-1")
+        middle["options"] = dict(task["options"], pages=None)
+        head = dict(task, id="reuse-2", status="reused", reusedFrom="reuse-1")
+        head["options"] = dict(task["options"], pages="")
+        tasks = {item["id"]: item for item in (head, middle, base)}
+
+        exported = EXPORT_TASK.export(
+            self.temp_root, "reuse-2", fetch_task=lambda identifier: tasks[identifier]
+        )
+
+        self.assertEqual("", exported["options"]["pages"])
+        self.assertEqual(
+            {
+                "provider", "backend", "cloudMode", "method", "language",
+                "formula", "table", "imageAnalysis", "effort", "formats",
+                "timeout", "pages", "force", "extraArgs", "env",
+            },
+            set(exported["options"]),
+        )
+        exported_path = self.temp_root / "real-shape-export.json"
+        exported_path.write_text(json.dumps(exported), encoding="utf-8")
+        _, exported_source_map, _ = MINERU_CACHE.import_task(
+            exported_path,
+            source,
+            self.temp_root / "real-shape-import",
+            sha256(source),
+            2,
+            "Synthetic fixture",
+            "2026-09-19T00:00:00+00:00",
+        )
+        self.assertIsNone(exported_source_map["mineru"]["options"]["pages"])
+        self.assertIsNone(CONVERT.mineru_task_binding(exported)["options"]["pages"])
+        for invalid in ([], 0, False, "1"):
+            with self.subTest(export_pages=repr(invalid)):
+                broken = {key: dict(value) for key, value in tasks.items()}
+                broken["reuse-2"]["options"] = dict(
+                    tasks["reuse-2"]["options"], pages=invalid
+                )
+                with self.assertRaisesRegex(ValueError, "full-document"):
+                    EXPORT_TASK.export(
+                        self.temp_root,
+                        "reuse-2",
+                        fetch_task=lambda identifier: broken[identifier],
+                    )
 
     def test_m04_reused_task_requires_complete_lineage(self):
         source, task_json, output, task = self.copied_desk_fixture(status="reused")
@@ -457,10 +590,12 @@ class CacheIntegrityTests(unittest.TestCase):
 
     def test_m05_submit_state_survives_poll_interruption_without_duplicate_submission(self):
         state_path = self.temp_root / "submission-state.json"
+        _, _, _, task = self.copied_desk_fixture()
         request = {
             "source_sha256": hashlib.sha256(b"source").hexdigest(),
-            "options": {"provider": "local", "backend": "pipeline"},
+            "options": task["options"],
         }
+        runtime_settings = dict(task["runtimeSettings"], modelSource="modelscope")
         submissions = []
 
         def submit(payload: dict[str, object]) -> str:
@@ -473,7 +608,12 @@ class CacheIntegrityTests(unittest.TestCase):
 
         with self.assertRaises(KeyboardInterrupt):
             EXPORT_TASK.submit_resume_and_poll(
-                state_path, request, submit, interrupted_fetch, max_polls=2
+                state_path,
+                request,
+                submit,
+                interrupted_fetch,
+                runtime_settings=runtime_settings,
+                max_polls=2,
             )
         saved = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual("task-persisted", saved["task_id"])
@@ -484,10 +624,125 @@ class CacheIntegrityTests(unittest.TestCase):
             request,
             submit,
             lambda task_id: {"id": task_id, "status": "completed"},
+            runtime_settings=runtime_settings,
             max_polls=2,
         )
         self.assertEqual("task-persisted", completed["id"])
         self.assertEqual(1, len(submissions))
+
+        invalid_requests = {
+            "backend": ({"options": dict(task["options"], backend="vlm")}, runtime_settings),
+            "cloudMode": ({"options": dict(task["options"], cloudMode="upload")}, runtime_settings),
+            "server": ({"options": task["options"], "server": "https://example.invalid"}, runtime_settings),
+            "offline": ({"options": task["options"]}, dict(runtime_settings, offline=False)),
+            "missing preflight": ({"options": task["options"]}, None),
+        }
+        for name, (patch, settings) in invalid_requests.items():
+            with self.subTest(unsafe_submit=name):
+                unsafe = {"source_sha256": request["source_sha256"], **patch}
+                with self.assertRaises(ValueError):
+                    EXPORT_TASK.submit_resume_and_poll(
+                        self.temp_root / f"unsafe-{name}.json",
+                        unsafe,
+                        submit,
+                        lambda task_id: {"id": task_id, "status": "completed"},
+                        runtime_settings=settings,
+                        max_polls=1,
+                    )
+
+        before_invalid_poll_settings = len(submissions)
+        for name, poll_arguments in {
+            "zero polls": {"max_polls": 0},
+            "negative interval": {"poll_interval": -1},
+        }.items():
+            with self.subTest(invalid_poll_setting=name):
+                with self.assertRaises(ValueError):
+                    EXPORT_TASK.submit_resume_and_poll(
+                        self.temp_root / f"invalid-poll-{name}.json",
+                        request,
+                        submit,
+                        lambda task_id: {"id": task_id, "status": "completed"},
+                        runtime_settings=runtime_settings,
+                        **poll_arguments,
+                    )
+        self.assertEqual(before_invalid_poll_settings, len(submissions))
+
+    def test_m05_cli_submit_resume_persists_id_before_poll_and_never_resubmits(self):
+        source, _, _, task = self.copied_desk_fixture()
+        task = dict(task)
+        task.update(
+            id="task-cli",
+            status="completed",
+            log="mineru-cli.py, version 3.4.5\n",
+            runtimeSettings=dict(task["runtimeSettings"], modelSource="modelscope"),
+        )
+        request_path = self.temp_root / "request.json"
+        state_path = self.temp_root / "submission.json"
+        output_path = self.temp_root / "export.json"
+        request = {
+            "files": [str(source.resolve())],
+            "outputRoot": str((self.temp_root / "desk-output").resolve()),
+            "options": task["options"],
+        }
+        request_path.write_text(
+            json.dumps(request, ensure_ascii=False), encoding="utf-8"
+        )
+        desk_root = self.temp_root / "desk"
+        desk_root.mkdir()
+        (desk_root / "Codex.ps1").write_text("# fixture\n", encoding="utf-8")
+        submissions: list[list[str]] = []
+        task_queries = 0
+
+        def fake_run(command, **kwargs):
+            nonlocal task_queries
+            args = [str(value) for value in command]
+            if args[-3:] == ["request", "GET", "state"]:
+                payload = {
+                    "paused": False,
+                    "settings": {
+                        "offline": True,
+                        "modelSource": "modelscope",
+                        "modelRoot": "models",
+                    },
+                }
+            elif len(args) >= 2 and args[-2] == "submit":
+                submissions.append(args)
+                submitted = json.loads(Path(args[-1]).read_text(encoding="utf-8"))
+                self.assertNotIn("runtimeSettings", submitted)
+                payload = [{"id": "task-cli"}]
+            elif args[-3:] == ["request", "GET", "tasks/task-cli"]:
+                task_queries += 1
+                payload = (
+                    {"id": "task-cli", "status": "running"}
+                    if task_queries == 1
+                    else task
+                )
+            else:
+                self.fail(f"unexpected Desk command: {args}")
+            return subprocess.CompletedProcess(
+                command, 0, stdout=json.dumps(payload, ensure_ascii=False), stderr=""
+            )
+
+        arguments = [
+            "--desk-root", str(desk_root),
+            "--request", str(request_path),
+            "--state", str(state_path),
+            "--output", str(output_path),
+            "--max-polls", "1",
+            "--poll-interval", "0",
+        ]
+        with mock.patch.object(EXPORT_TASK.subprocess, "run", side_effect=fake_run):
+            self.assertEqual(2, EXPORT_TASK.main(arguments))
+            saved = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual("task-cli", saved["task_id"])
+            self.assertEqual(1, len(submissions))
+
+            self.assertEqual(0, EXPORT_TASK.main(arguments))
+
+        self.assertEqual(1, len(submissions))
+        exported = json.loads(output_path.read_text(encoding="utf-8"))
+        self.assertEqual("task-cli", exported["id"])
+        self.assertEqual("modelscope", exported["runtimeSettings"]["modelSource"])
 
     def test_m01_exporter_hashes_original_and_validates_every_lineage_node(self):
         source, _, _, task = self.copied_desk_fixture(status="reused")
@@ -511,7 +766,7 @@ class CacheIntegrityTests(unittest.TestCase):
 
         self.assertEqual(sha256(source), exported["source_sha256"])
         self.assertEqual(["reuse-2", "reuse-1", "base-1"], exported["lineage_task_ids"])
-        self.assertNotIn("env", exported["options"])
+        self.assertEqual({}, exported["options"]["env"])
         self.assertNotIn("origin.pdf", json.dumps(exported, ensure_ascii=False))
 
         def assert_rejected(mutator, message: str):
@@ -568,6 +823,30 @@ class CacheIntegrityTests(unittest.TestCase):
             "secret option": (
                 lambda value: value["reuse-2"]["options"].__setitem__("token", "secret"),
                 "unsupported option",
+            ),
+            "nonempty env": (
+                lambda value: value["reuse-2"]["options"].__setitem__(
+                    "env", {"TOKEN": "secret"}
+                ),
+                "env",
+            ),
+            "nonempty extra args": (
+                lambda value: value["reuse-2"]["options"].__setitem__(
+                    "extraArgs", ["--unsafe"]
+                ),
+                "extraArgs",
+            ),
+            "wrong cloud mode": (
+                lambda value: value["reuse-2"]["options"].__setitem__(
+                    "cloudMode", "upload"
+                ),
+                "cloudMode",
+            ),
+            "wrong timeout type": (
+                lambda value: value["reuse-2"]["options"].__setitem__(
+                    "timeout", False
+                ),
+                "timeout",
             ),
             "cycle": (
                 lambda value: value["base-1"].update(status="reused", reusedFrom="reuse-2"),
