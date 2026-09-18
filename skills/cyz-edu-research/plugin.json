@@ -1,0 +1,25 @@
+{
+  "name": "cyz-edu-research",
+  "version": "0.2.1",
+  "description": "Chinese-first, beginner-guided education research and paper workbench with academic Chinese humanization and semantic regression.",
+  "author": {
+    "name": "Cheng-I Wu"
+  },
+  "license": "CC-BY-NC-4.0",
+  "keywords": ["education research", "physics education", "academic writing", "literature review", "Chinese"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "CYZ 教育研究工作台",
+    "shortDescription": "中文优先的教育研究与论文写作工作流",
+    "longDescription": "面向物理教学、教育学和学习科学初学者，从研究念头或教学问题逐步推进到可核验的论文。内置文献扫描、PDF Markdown 缓存、研究设计、论文写作、学术语言打磨、语义回归和质量审查。",
+    "developerName": "Cheng-I Wu",
+    "category": "Productivity",
+    "capabilities": ["Write"],
+    "defaultPrompt": [
+      "使用 $cyz-edu-research 从当前材料推进我的教育研究论文。",
+      "我没有研究思路，请扫描文献并帮我发现可实施方向。",
+      "请先把这篇 PDF 缓存为 Markdown，再做标准精读。",
+      "论文内容已定稿，请执行学术语体语言打磨并完成语义回归。"
+    ]
+  }
+}

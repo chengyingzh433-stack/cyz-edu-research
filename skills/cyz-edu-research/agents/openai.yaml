@@ -1,0 +1,4 @@
+interface:
+  display_name: "CYZ 教育研究工作台"
+  short_description: "面向教育研究选题、文献、方法、论文写作与学术语言的完整工作流"
+  default_prompt: "使用 $cyz-edu-research 处理我的教育研究材料，并从当前最早未完成的研究环节继续。"

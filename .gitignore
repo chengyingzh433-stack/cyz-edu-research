@@ -1,0 +1,28 @@
+# Python caches and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test, type-checker, and coverage caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local virtual environments
+.venv/
+venv/
+
+# Temporary and editor files
+.tmp/
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+~$*
+
+# Generated distribution assets (keep the directory placeholder)
+dist/*
+!dist/.gitkeep

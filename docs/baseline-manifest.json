@@ -1,0 +1,392 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-18T23:59:24.5692330+08:00",
+  "timeZone": {
+    "iana": "Asia/Shanghai",
+    "windowsId": "China Standard Time",
+    "utcOffset": "+08:00"
+  },
+  "goal": {
+    "objective": "完成目标文件中的任务",
+    "status": "active"
+  },
+  "paths": {
+    "executionRoot": "D:\\cyz的资料\\03_个人生活\\有趣的项目\\论文工作台\\work",
+    "sourceRoot": "D:\\cyz的资料\\03_个人生活\\有趣的项目\\论文工作台\\work\\projects\\cyz-edu-research",
+    "baselineBackupRoot": "D:\\cyz的资料\\03_个人生活\\有趣的项目\\论文工作台\\work\\backups\\2026-09-18-baseline"
+  },
+  "hashing": {
+    "algorithm": "SHA-256",
+    "fileHash": "SHA-256 of raw file bytes",
+    "directoryHash": "SHA-256 of UTF-8 canonical inventory lines sorted by ordinal relative path",
+    "canonicalInventoryLine": "<relative-path-with-forward-slashes>\\t<lowercase-file-sha256>\\t<byte-length>\\n"
+  },
+  "sourceSnapshots": [
+    {
+      "file": "论文工作流改造说明.md",
+      "bytes": 2843,
+      "sha256": "6ae65d8adcbacd7f2174d475a99aaa4525b721b5d31b5b536c629a8feeda76cc"
+    },
+    {
+      "file": "CYZ_Goal交接文件清单.json",
+      "bytes": 1072,
+      "sha256": "948343a1a9404323931ea1abb2f4a1a2ccb7a3b0dbbf72e98d09cab4d685a8ec"
+    },
+    {
+      "file": "CYZ工作流新版本_详细技术方案_v0.2.md",
+      "bytes": 15253,
+      "sha256": "9ab7de95d6b21bd13f380b1d0cfe3f66bec5d5f9f7dcc341e02bef639174a2ad"
+    },
+    {
+      "file": "CYZ教育教学Idea发现与打磨_改造方案_v0.1.md",
+      "bytes": 12038,
+      "sha256": "1e13c9d7a274fb3143f1af4121c99af37fa3df3e994d75150c0b80792bab77fa"
+    },
+    {
+      "file": "CYZ研究工作台_详细技术方案_v0.2.md",
+      "bytes": 24429,
+      "sha256": "7746971c4b7e93726462898bf87bb2385a6ea9906cb06308b08b59665e6b0616"
+    },
+    {
+      "file": "CYZ研究工作台_PRD与技术方案_v0.1.md",
+      "bytes": 28026,
+      "sha256": "b8244ed4b26593a51e0217ea0a56740249bacc7c83bf86e9b6a7fbb555bdb5d0"
+    },
+    {
+      "file": "GOAL_CYZ新版本发布与研究工作台全流程交付.md",
+      "bytes": 20326,
+      "sha256": "6b94835c01711564bdb3cf5890a268d64ed5c550935b11b4ba3c3b128a41b0a9"
+    }
+  ],
+  "cyzEduResearchInstalls": {
+    "codex": {
+      "path": "C:\\Users\\W\\.codex\\skills\\cyz-edu-research",
+      "full": {
+        "fileCount": 31,
+        "bytes": 229229,
+        "sha256": "f5ecb5ff49297f1d4a89ee2c44ad44b4ba441a343b3c406621ffecd627714497"
+      },
+      "cacheExcluded": {
+        "fileCount": 31,
+        "bytes": 229229,
+        "sha256": "f5ecb5ff49297f1d4a89ee2c44ad44b4ba441a343b3c406621ffecd627714497"
+      }
+    },
+    "agents": {
+      "path": "C:\\Users\\W\\.agents\\skills\\cyz-edu-research",
+      "full": {
+        "fileCount": 33,
+        "bytes": 287460,
+        "sha256": "f5e7287ca9c988e6760ec8f66d6ae5bf93ec425d4d0b0960ce23078e27bba12e"
+      },
+      "cacheExcluded": {
+        "fileCount": 31,
+        "bytes": 229229,
+        "sha256": "f5ecb5ff49297f1d4a89ee2c44ad44b4ba441a343b3c406621ffecd627714497"
+      }
+    },
+    "cacheExcludedTreesEqual": true,
+    "controlledFiles": [
+      {
+        "relativePath": "改造说明.md",
+        "sha256": "db36e02b00d3676f21d6be2b4ac65bc157cb42da3aa05ffc7fd4111a1b88478f",
+        "bytes": 11856
+      },
+      {
+        "relativePath": "使用说明.md",
+        "sha256": "193c50af29d27940f8766768285f08ffcf53e3ce4dbf40c34115063f275e5c5e",
+        "bytes": 32386
+      },
+      {
+        "relativePath": "agents/openai.yaml",
+        "sha256": "dd3f04da0ed9cd8e77af845c4fb16e2605be380ad2e2ce111bebb6695fa59e78",
+        "bytes": 301
+      },
+      {
+        "relativePath": "LICENSE",
+        "sha256": "b3848009d12a173f549ef98d9ee486e64459e8eb5d9f895bff53782b4aa86d7c",
+        "bytes": 19584
+      },
+      {
+        "relativePath": "plugin.json",
+        "sha256": "cf811fd1691cbe1319890034661154a8050c85d8a84b588161e4519c4a0a5c80",
+        "bytes": 1293
+      },
+      {
+        "relativePath": "references/academic-humanization.md",
+        "sha256": "b7b1413c325e1919b18aee613cf1c31e29d1df610042845cd99bd25f9b26eb33",
+        "bytes": 17151
+      },
+      {
+        "relativePath": "references/education-research-methods.md",
+        "sha256": "6fabc58d6194f2399e4855788196a9c4a96e99b4e25213b619ea470f5d8a0855",
+        "bytes": 6558
+      },
+      {
+        "relativePath": "references/guided-mentor.md",
+        "sha256": "44c42e1026778892908c5662c115333cc210db1e015c49656ea55b8b0c34f1ff",
+        "bytes": 1917
+      },
+      {
+        "relativePath": "references/idea-scout.md",
+        "sha256": "36d0d0273dd96411f761fd724a78a8743847232055d2f9bc2fd8e184ba750e52",
+        "bytes": 2977
+      },
+      {
+        "relativePath": "references/integrity-gates.md",
+        "sha256": "282a1a153381b686d8612731a46f1cb89edc40353f3672c0898f7676159d6f22",
+        "bytes": 6092
+      },
+      {
+        "relativePath": "references/literature-workflow.md",
+        "sha256": "62805558ad541f0f6d21c5bbf0fe47f64bd3d5571dc36854ff84d2c7386aefb9",
+        "bytes": 6688
+      },
+      {
+        "relativePath": "references/paper-writing.md",
+        "sha256": "332ede15abb744c460ad0a37ad26b6a4aa9e8087b3c1b71ceb6f5ee4dabe02fd",
+        "bytes": 6971
+      },
+      {
+        "relativePath": "references/pdf-reading.md",
+        "sha256": "3e571c66237397e4b26b0d0f6a6e837377aa69cf82721a576d5e2f3244a63601",
+        "bytes": 9608
+      },
+      {
+        "relativePath": "references/project-protocol.md",
+        "sha256": "e775a1831b2aae5141f72b63732b18a9b5200ef19f07b0aab13c6d2fa426bd88",
+        "bytes": 2696
+      },
+      {
+        "relativePath": "scripts/check_semantic_lock.py",
+        "sha256": "5129b049361e0ee8e9d6b7743420b6ae3ffdc7b6a174ab2a864aa848518942b2",
+        "bytes": 10707
+      },
+      {
+        "relativePath": "scripts/convert_pdf_to_md.py",
+        "sha256": "7e1546cb033a2db2e620df0af7862051d95125b05e5ca68afc541eb8ebd51dfe",
+        "bytes": 37204
+      },
+      {
+        "relativePath": "scripts/export_mineru_task.py",
+        "sha256": "8993f90cff2f353580071abee7d81592367b836d93fcc167024de78026698367",
+        "bytes": 3066
+      },
+      {
+        "relativePath": "scripts/init_project.py",
+        "sha256": "ab49a8d3077371f97f5afa422331cb55ad44bea4dff118c9e9f2eaed7ca45a6e",
+        "bytes": 4677
+      },
+      {
+        "relativePath": "scripts/mineru_cache.py",
+        "sha256": "4e5173c39cec9d67d50a5771efb78d6b39f7f233b966219c111d3224670e3d42",
+        "bytes": 8007
+      },
+      {
+        "relativePath": "scripts/validate_project.py",
+        "sha256": "9f3aab8567538d33e3e8d275a2be01edbc4084a6206652675c10e3bad853d4a4",
+        "bytes": 10930
+      },
+      {
+        "relativePath": "SKILL.md",
+        "sha256": "382dcfd841413f9c0436d4b42eef54d19964ec39faec7ea2b7c90c2e7f9e7980",
+        "bytes": 12916
+      },
+      {
+        "relativePath": "templates/academic-humanization-report.md",
+        "sha256": "9d36a088dbbb663f06794ff70ed804c685d1b3b16eff31acd06f94cf76d1976e",
+        "bytes": 3350
+      },
+      {
+        "relativePath": "templates/audit-report.md",
+        "sha256": "67389c91abd0e76c73c489f20c0d901cda0ac6d6dfb2992fb14ddda6d235868f",
+        "bytes": 1085
+      },
+      {
+        "relativePath": "templates/evidence-matrix.md",
+        "sha256": "251222b9eb812548a26eb2fabc0587f1756999dae855d4ec8e2a069d6b64a045",
+        "bytes": 726
+      },
+      {
+        "relativePath": "templates/literature-card.md",
+        "sha256": "fdd210ec3461e7c0f6679be7cec481f68af1d233fc2008ec1407b7cbc4a51b64",
+        "bytes": 1387
+      },
+      {
+        "relativePath": "templates/project-status.md",
+        "sha256": "c12eea4ae2fbdf0d302958f4e0fb59c1d4e6d2e77c90508a3e293996c186c8c1",
+        "bytes": 2003
+      },
+      {
+        "relativePath": "templates/rapid-scan.md",
+        "sha256": "48161ffe8a812dbe478b00216ac63c83a0907d0221d4e8453df71d935044c97b",
+        "bytes": 349
+      },
+      {
+        "relativePath": "templates/research-design.md",
+        "sha256": "a1a0a2f3e7fa071d6ec40791233365197580b946125404bb69544f437a941d71",
+        "bytes": 560
+      },
+      {
+        "relativePath": "templates/three-way-scan.md",
+        "sha256": "ed82ad580b34eae431e8d5da62077131c21629bc5906cf94e86f19d6b16cb463",
+        "bytes": 740
+      },
+      {
+        "relativePath": "THIRD_PARTY_NOTICES.md",
+        "sha256": "b810b979534b57b21cb470a22710149ae598539727e1630b733bee8740aa6bbe",
+        "bytes": 4367
+      },
+      {
+        "relativePath": "third_party/qu-ai-wei-LICENSE.txt",
+        "sha256": "38afb5701ea731548bf4ec5e9f550e0150cfa5257071114eac0de1ee0902a5ef",
+        "bytes": 1077
+      }
+    ]
+  },
+  "dependencySkills": [
+    {
+      "name": "mineru",
+      "version": "4.0.0-desk-local",
+      "versionStatus": "declared",
+      "versionEvidence": "SKILL.md metadata.version",
+      "source": null,
+      "sourceStatus": "unknown",
+      "license": null,
+      "licenseStatus": "unknown",
+      "installations": [
+        {
+          "root": "codex",
+          "path": "C:\\Users\\W\\.codex\\skills\\mineru",
+          "fileCount": 52,
+          "bytes": 301746,
+          "sha256": "b31294d96ea034b470478aa2cc38d09be682abf766e77f93b56e712d4e8dfcba"
+        },
+        {
+          "root": "agents",
+          "path": "C:\\Users\\W\\.agents\\skills\\mineru",
+          "fileCount": 52,
+          "bytes": 301746,
+          "sha256": "b31294d96ea034b470478aa2cc38d09be682abf766e77f93b56e712d4e8dfcba"
+        }
+      ],
+      "rootsEqual": true
+    },
+    {
+      "name": "humanizer-zh",
+      "version": null,
+      "versionStatus": "unknown",
+      "versionEvidence": null,
+      "source": "https://github.com/syw2039/humanizer-zh.git",
+      "sourceStatus": "declared-in-README",
+      "license": "MIT",
+      "licenseStatus": "declared-in-LICENSE",
+      "installations": [
+        {
+          "root": "codex",
+          "path": "C:\\Users\\W\\.codex\\skills\\humanizer-zh",
+          "fileCount": 9,
+          "bytes": 24426,
+          "sha256": "4fd457ac06688f55d8cd6921dde5ae3b105f371696a4673d956a038c435b3f9f"
+        },
+        {
+          "root": "agents",
+          "path": "C:\\Users\\W\\.agents\\skills\\humanizer-zh",
+          "fileCount": 9,
+          "bytes": 24426,
+          "sha256": "4fd457ac06688f55d8cd6921dde5ae3b105f371696a4673d956a038c435b3f9f"
+        }
+      ],
+      "rootsEqual": true
+    },
+    {
+      "name": "humanizer",
+      "version": "2.9.1",
+      "versionStatus": "declared",
+      "versionEvidence": "SKILL.md metadata.version",
+      "source": "https://github.com/blader/humanizer.git",
+      "sourceStatus": "declared-in-README",
+      "license": "MIT",
+      "licenseStatus": "declared-in-SKILL-and-LICENSE",
+      "installations": [
+        {
+          "root": "codex",
+          "path": "C:\\Users\\W\\.codex\\skills\\humanizer",
+          "fileCount": 9,
+          "bytes": 51373,
+          "sha256": "ca43b838a44ad4819f3fd60f10c2ed2ef9b6ced517929be2dcca9dbc41a9e892"
+        },
+        {
+          "root": "agents",
+          "path": "C:\\Users\\W\\.agents\\skills\\humanizer",
+          "fileCount": 9,
+          "bytes": 51373,
+          "sha256": "ca43b838a44ad4819f3fd60f10c2ed2ef9b6ced517929be2dcca9dbc41a9e892"
+        }
+      ],
+      "rootsEqual": true
+    },
+    {
+      "name": "clarify-research-idea",
+      "version": null,
+      "versionStatus": "unknown",
+      "versionEvidence": null,
+      "source": null,
+      "sourceStatus": "unknown",
+      "license": null,
+      "licenseStatus": "unknown",
+      "installations": [
+        {
+          "root": "codex",
+          "path": "C:\\Users\\W\\.codex\\skills\\clarify-research-idea",
+          "fileCount": 9,
+          "bytes": 35200,
+          "sha256": "718c560ca7e895abf7a39a4274588a10225fc036b457062c6eabba8cc0c86765"
+        },
+        {
+          "root": "agents",
+          "path": "C:\\Users\\W\\.agents\\skills\\clarify-research-idea",
+          "fileCount": 9,
+          "bytes": 35200,
+          "sha256": "718c560ca7e895abf7a39a4274588a10225fc036b457062c6eabba8cc0c86765"
+        }
+      ],
+      "rootsEqual": true
+    }
+  ],
+  "runtime": {
+    "git": "2.54.0.windows.1",
+    "gitIdentityConfigured": false,
+    "node": "24.16.0",
+    "npm": "11.13.0",
+    "pnpm": "11.19.0",
+    "pythonLauncher": {
+      "3.11": "3.11.9",
+      "3.11Path": "C:\\Users\\W\\AppData\\Local\\Programs\\Python\\Python311\\python.exe"
+    },
+    "uv": {
+      "version": "0.12.6",
+      "managedPython": "3.12.14",
+      "managedPythonPath": "C:\\Users\\W\\AppData\\Roaming\\uv\\python\\cpython-3.12.14-windows-x86_64-none\\python.exe"
+    },
+    "rustc": "1.96.1",
+    "cargo": "1.96.1",
+    "codex": {
+      "version": "0.153.4",
+      "authentication": "ChatGPT logged in"
+    },
+    "githubCli": {
+      "installed": false,
+      "version": null
+    },
+    "mineruDesk": {
+      "path": "D:\\cyz的资料\\03_个人生活\\有趣的项目\\MinerU\\MinerU Desk",
+      "pathExists": true,
+      "deskVersion": "0.3.1",
+      "mineruVersion": "3.4.5",
+      "runtime": "CPython 3.12.10 / MinerU 3.4.5 / PyTorch 2.8.0+cpu",
+      "distribution": "installer",
+      "modelsIncluded": false
+    }
+  }
+}
