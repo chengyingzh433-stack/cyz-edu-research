@@ -1,6 +1,6 @@
 ---
 name: cyz-edu-research
-description: Chinese-first, beginner-guided education research and paper workbench for physics education, science education, learning sciences, and general education studies. Use when a user has no research idea and wants literature-based direction discovery; has a teaching concern, topic, papers, data, research design, or manuscript draft; needs literature search, screening, structured paper reading, evidence synthesis, research-gap validation, educational study design, analysis planning, manuscript drafting or review, academic Chinese humanization, project resumption, or final output. Maintain persistent Markdown records, guide one consequential decision at a time, and never fabricate evidence, citations, methods, results, quality labels, or authorial experience.
+description: Use when a Chinese-speaking beginner needs education-research idea discovery or refinement, literature search or paper reading, evidence synthesis, study design, analysis planning, manuscript drafting or review, academic-language polishing, project resumption, or final integrity checks.
 ---
 
 # CYZ Education Research Workbench
@@ -33,6 +33,7 @@ Operate as one workbench with explicit skill dependencies: `humanizer-zh` (syw20
    - `discovery`: no research idea;
    - `topic`: teaching concern, direction, title, or tentative question;
    - `materials`: existing papers, proposal, data, results, or draft.
+   Then choose the idea path: only a user with no idea enters discovery; any existing idea, however vague or complete, enters refinement at its current maturity and skips broad discovery.
 6. Create a project only after its directory or default project name is clear. Use `scripts/init_project.py` when possible.
 7. Read [project-protocol.md](references/project-protocol.md) whenever a project is created, resumed, or updated.
 
@@ -41,7 +42,7 @@ Operate as one workbench with explicit skill dependencies: `humanizer-zh` (syw20
 | User state or request | Read and follow |
 | --- | --- |
 | No idea; asks AI to read many papers and find directions | [idea-scout.md](references/idea-scout.md), then [literature-workflow.md](references/literature-workflow.md) |
-| Vague concern, topic, title, or competing options | [guided-mentor.md](references/guided-mentor.md), then [education-research-methods.md](references/education-research-methods.md) |
+| Existing idea: vague concern, topic, title, question, plan, or competing options | [idea-refinement.md](references/idea-refinement.md), then [guided-mentor.md](references/guided-mentor.md); skip broad discovery |
 | Search terms, databases, screening, paper reading, evidence matrix, literature review, or gap | [literature-workflow.md](references/literature-workflow.md) |
 | Any PDF paper, scanned article, PDF table/figure, or page-specific claim | First build/reuse the Markdown cache with [pdf-reading.md](references/pdf-reading.md), then follow [literature-workflow.md](references/literature-workflow.md) |
 | Research question, theory, sample, survey, interview, observation, experiment, mixed methods, ethics, or analysis plan | [education-research-methods.md](references/education-research-methods.md) |
@@ -78,11 +79,7 @@ After the user confirms a direction:
 
 ## Entry Mode B: Topic Or Concern
 
-1. Distinguish observation, direction, topic, title, and answerable research question.
-2. Translate vague concepts into observable constructs, relationships, mechanisms, conditions, processes, or contrasts.
-3. Generate alternatives and compare value, evidence needs, feasibility, ethics, and personal access.
-4. Recommend one option and ask one decision question.
-5. Record the confirmed question and reasoning before designing methods or drafting prose.
+Follow [idea-refinement.md](references/idea-refinement.md). Start from the user's present maturity rather than restarting discovery. Do not enter writing before user confirmation of the current question and claim boundary.
 
 ## Entry Mode C: Existing Materials
 

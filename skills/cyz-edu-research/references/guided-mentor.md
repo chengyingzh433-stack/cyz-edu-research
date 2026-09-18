@@ -9,7 +9,7 @@ Use this protocol for consequential academic decisions. Keep the tone calm and i
 3. Inspect project files, sources, and available facts before asking the user.
 4. Generate two or three materially different options only when alternatives are real.
 5. Recommend one option. Explain why it best fits value, evidence, feasibility, ethics, and current constraints.
-6. Ask exactly one question and wait.
+6. Ask exactly one consequential question per turn and wait. Mechanical path or naming confirmations do not consume that question; resolve them separately and briefly.
 7. Record the answer, recommendation, rationale, rejected alternatives, and downstream effect in project state.
 8. Continue only after shared understanding is sufficient for the current stage.
 
@@ -50,3 +50,7 @@ Do not ask the user for facts that can be found in supplied files, metadata, pro
 ```
 
 Avoid presenting a false binary when the evidence supports another path. If no option is ready, recommend further evidence collection rather than forcing a choice.
+
+## When The User Answers `不知道`
+
+Do not treat `不知道` as consent and do not repeat the same question with more jargon. First explain the tradeoff with a concrete example from the current candidates. Then recommend a provisional option with its evidence and downside, present at least one real alternative, and ask one simpler consequential question. If the choice depends on a missing fact, inspect supplied materials or run the smallest targeted check; otherwise record the decision as pending and set `idea_status` to `needs_verification` or `blocked` with an explicit recovery condition.

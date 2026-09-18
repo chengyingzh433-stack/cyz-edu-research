@@ -23,7 +23,7 @@ If the user truly has no boundary, start with a broad physics-education or educa
 5. For each retained candidate, extract the compact fields below.
 6. Cluster by educational problem, theory, method, population, context, and outcome/theme.
 7. Verify a small number of representative and contradictory papers against full text when accessible.
-8. Produce candidate directions, not premature detailed proposals.
+8. Produce candidate directions, not premature detailed proposals. Reuse supplied seed papers and valid caches before supplementary searching.
 
 ## Compact Paper Scan
 
@@ -55,21 +55,16 @@ Produce:
 5. method, population, context, theory, and time distributions;
 6. underrepresented areas marked as candidate opportunities, not proven gaps;
 7. representative, contradictory, and priority-reading papers;
-8. 5-10 candidate directions scored on value, evidence base, feasibility, ethics, and fit with accessible settings.
+8. about 3–5 candidate directions scored on value, evidence base, feasibility, ethics, and fit with accessible settings, but only when evidence supports that many.
 
 ## Candidate Direction Card
 
-For each direction state:
+Use exactly the canonical fields carried into refinement:
 
-- direction name;
-- educational problem;
-- what the scan suggests;
-- common methods and data;
-- representative paper IDs;
-- uncertainty and scan depth;
-- promising questions;
-- practical prerequisites;
-- primary risks;
-- next targeted search needed.
+- Candidate card: `candidate_id`, `idea_revision`, `specific_problem`, `scope`, `paper_ids`, `evidence_locators`, `possible_value`, `closest_research`, `materials_existing`, `materials_acquirable`, `materials_new_required`, `alternatives`, `counterevidence`, `failure_conditions`, `feasibility`, `claim_limits`, `recommendation_reason`.
 
-Use the guided mentor to recommend one main direction and at most two backups. Once confirmed, stop broad scanning and switch to targeted search and standard reading.
+Put scan-wide depth, coverage, terminology, and next-search notes in the direction scan package rather than inventing extra candidate fields. Within the canonical card, use `claim_limits` for material uncertainty, `alternatives` for promising competing questions, `feasibility` for prerequisites and collection burden, and `failure_conditions` for primary risks.
+
+Present about 3–5 cards when supported. Do not pad the list to reach 3–5: show fewer and state the evidence shortage. Use the guided mentor to recommend one main direction and at most two backups.
+
+Stop broad discovery when coverage includes the main terminology and plausible direction families, seed-material bias has been checked, a representative and a contradictory source have been sought where available, and another search round no longer changes the candidate set or known uncertainties. Also stop when the user confirms a direction. Record the stop reason, then switch to targeted search and [idea-refinement.md](idea-refinement.md).

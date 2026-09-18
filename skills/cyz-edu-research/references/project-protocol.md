@@ -10,6 +10,7 @@ Record:
 
 - project title and root;
 - entry mode;
+- `idea_mode`, `idea_maturity`, `idea_status`, and integer `idea_revision`;
 - current stage and gate status;
 - academic language-pass status when applicable;
 - confirmed RQ and scope;
@@ -21,6 +22,8 @@ Record:
 - latest decision and rationale;
 - next recommended action;
 - last updated date.
+
+Use only `not_started`, `exploring`, `refining`, `needs_verification`, `ready`, or `blocked` for `idea_status`. Increment `idea_revision` after a substantive change to the problem, question, scope, explanation, evidence route, or claim boundary. Link `current_decision` and `current_evidence` to records for that same revision; never rewrite an earlier decision to make it appear current.
 
 ## Resume
 
@@ -42,6 +45,8 @@ After meaningful work, update:
 - decision log;
 - next action;
 - blockers.
+
+Update the stable candidate card, current-topic card, decision record, and handoff fields defined in [idea-refinement.md](idea-refinement.md). Preserve rejected candidates and decision history with their reasons. When new evidence changes a premise, mark dependent records for review rather than silently carrying them forward.
 
 For academic humanization, preserve the pre-pass draft, record both file hashes, complete `07-论文草稿/学术语言打磨报告.md`, and link its result from `08-审查与修改记录.md`. Never overwrite the only substantively approved draft.
 

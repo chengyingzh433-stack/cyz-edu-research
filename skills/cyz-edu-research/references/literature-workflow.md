@@ -4,6 +4,14 @@
 
 Before targeted searching, define the concepts, population, context, and question boundary. In no-idea discovery, use the broader boundary from `idea-scout` and do not pretend a final RQ already exists.
 
+Choose one search purpose and reuse earlier records rather than restarting:
+
+- `discovery scan`: map terminology and direction families before an idea exists;
+- `targeted idea check`: test the closest research, counterevidence, and uncertainty that could change a candidate;
+- `formal review`: execute the reproducible search, screening, appraisal, and synthesis needed for a confirmed RQ.
+
+When seed papers or prior records exist, inventory, deduplicate, and reuse their paper IDs, access labels, caches, and extracted fields first. Supplement only the missing coverage. Record the stop condition before searching.
+
 ## 2. Search Matrix
 
 For each concept list:
@@ -133,3 +141,5 @@ A defensible gap answers:
 After proposing a candidate gap, run a targeted verification search designed to disconfirm it. Record queries and contrary evidence. Mark the gap as `待核验` until this pass is complete.
 
 Avoid “few studies exist” as the sole argument. Scarcity matters only when the missing evidence blocks an important explanation or decision.
+
+For idea refinement, return the closest studies, contrary findings, unresolved conditions, evidence access limits, and implications for the candidate's alternatives, data requirements, failure conditions, and claim boundary. Do not turn a targeted check into a whole-discipline rescan.

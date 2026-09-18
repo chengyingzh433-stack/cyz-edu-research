@@ -21,6 +21,8 @@ Use these gates before moving stages and before final output.
 - method/population/context distributions summarized;
 - candidate opportunities not mislabeled as proven gaps;
 - recommended direction considers feasibility and ethics.
+- about 3–5 candidates are shown only when supported; fewer are allowed and the list is never padded;
+- the coverage-based broad-search stop reason is recorded.
 
 ## Gate S1: Research Question
 
@@ -30,6 +32,11 @@ Use these gates before moving stages and before final output.
 - evidence can realistically be collected;
 - scope is manageable;
 - user confirmed the main RQ.
+- the current `idea_revision` has stable candidate/current-topic fields, a user-sourced decision, and traceable handoff references;
+- alternatives, closest research, counterevidence, failure conditions, data requirements, feasibility, ethics, and claim boundaries are explicit;
+- qualitative or design questions mark quantitative requirements as `not applicable`; satisfaction is not substituted for learning outcomes.
+
+Do not pass S0 or S1 from formatting alone. `needs_verification` and `blocked` cannot pass. `ready` means only that the current idea revision can enter the next research stage; it does not prove novelty, effectiveness, or publishability. Do not enter writing before user confirmation of the current question and claim boundary.
 
 ## Gate S2-S4: Literature
 
