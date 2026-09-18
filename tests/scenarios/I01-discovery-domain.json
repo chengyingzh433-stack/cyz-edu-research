@@ -23,9 +23,9 @@
       "id": "I01.forbid.01",
       "oracle": "不得发生：强迫用户先陈述课堂困惑",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.forcedClassroomProblemCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I01/result.json"
@@ -35,9 +35,9 @@
       "id": "I01.forbid.02",
       "oracle": "不得发生：把未检出写成研究空白",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.unverifiedGapClaimCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I01/result.json"
@@ -49,9 +49,33 @@
       "id": "I01.pass.01",
       "oracle": "状态为 discovery；候选均含依据、未知与推荐理由",
       "condition": {
-        "path": "observed.discoveryCandidateBoundaryPassed",
+        "path": "observations.ideaMode",
         "operator": "eq",
-        "expected": true
+        "expected": "discovery"
+      },
+      "evidenceRequired": [
+        "results/I01/result.json"
+      ]
+    },
+    {
+      "id": "I01.pass.02",
+      "oracle": "原始观测 candidateCardCount 必须满足 gte 1",
+      "condition": {
+        "path": "observations.candidateCardCount",
+        "operator": "gte",
+        "expected": 1
+      },
+      "evidenceRequired": [
+        "results/I01/result.json"
+      ]
+    },
+    {
+      "id": "I01.pass.03",
+      "oracle": "原始观测 candidateCardsMissingBoundaryCount 必须满足 eq 0",
+      "condition": {
+        "path": "observations.candidateCardsMissingBoundaryCount",
+        "operator": "eq",
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I01/result.json"

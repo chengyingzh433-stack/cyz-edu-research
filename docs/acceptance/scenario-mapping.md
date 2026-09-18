@@ -39,8 +39,10 @@
 
 ## Schema 与判定 DSL
 
-- 每个 fixture 都由 `scenario-contract.schema.json` 验证。仓库内 `tests/scenarios/schema_validator.py` 实现本 schema 使用到的 Draft 2020-12 子集，不依赖环境中的第三方包；未知类型、外部 `$ref` 和未声明字段一律失败。
+- 每个 fixture 都由 `scenario-contract.schema.json` 验证。仓库内 `tests/scenarios/schema_validator.py` 只实现并声明本仓库需要的 JSON Schema 关键词子集，并不声称完整实现 Draft 2020-12。校验器会先递归检查 schema 本身；未知断言关键词、未知类型、外部 `$ref` 和未声明字段一律失败，因此不会把未实现的规则静默当作通过。
 - `criteriaDslVersion` 当前固定为 `1`。每条通过条件和禁止行为都有稳定 ID、人工可读 oracle、结构化 `condition` 和已声明的证据路径。
 - condition 仅允许点分字段路径，以及 `eq`、`not_eq`、`gte`、`lte`、`exists`、`unchanged` 运算符。解释器使用封闭分支，不执行 `eval`、表达式字符串或动态代码。
-- 所有证据路径必须是当前场景目录下的 POSIX 相对路径：`results/<scenario-id>/...`。绝对路径、盘符、UNC、反斜杠、`..`、跨场景路径和未在顶层声明的 criterion 证据都会被拒绝。
+- `eq`、`not_eq` 与 `unchanged` 按 JSON 类型比较；布尔值不会与数值 `0` 或 `1` 混同。`unchanged` 的观测值固定为 `{"before": ..., "after": ...}`。
+- 场景运行结果遵循 `result-contract.schema.json`：包含版本、场景 ID、记录时间、状态、原始 `observations` 与来源证据。判据直接读取这些观测值，不允许用 `*Passed`、`*Valid`、`*Unchanged` 一类汇总布尔值自证成功。
+- 所有证据路径必须是当前场景目录下的 POSIX 相对路径：`results/<scenario-id>/...`。绝对路径、盘符、UNC、反斜杠、任何纯点号路径段（`.`、`..`、`...` 等）、跨场景路径和未在顶层声明的 criterion 证据都会被拒绝。
 - 复现命令：`py -3.11 -m unittest tests.test_workflow_contract -v`。

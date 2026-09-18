@@ -24,9 +24,9 @@
       "id": "I04.forbid.01",
       "oracle": "不得发生：跳过审查直接写论文",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.prematureWritingTransitionCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I04/result.json"
@@ -36,9 +36,9 @@
       "id": "I04.forbid.02",
       "oracle": "不得发生：把格式完整等同研究成立",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.formatOnlyApprovalCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I04/result.json"
@@ -50,9 +50,21 @@
       "id": "I04.pass.01",
       "oracle": "选题卡记录替代解释与失败条件",
       "condition": {
-        "path": "observed.counterExplanationReviewPassed",
-        "operator": "eq",
-        "expected": true
+        "path": "observations.counterExplanationCount",
+        "operator": "gte",
+        "expected": 1
+      },
+      "evidenceRequired": [
+        "results/I04/result.json"
+      ]
+    },
+    {
+      "id": "I04.pass.02",
+      "oracle": "原始观测 failureConditionCount 必须满足 gte 1",
+      "condition": {
+        "path": "observations.failureConditionCount",
+        "operator": "gte",
+        "expected": 1
       },
       "evidenceRequired": [
         "results/I04/result.json"

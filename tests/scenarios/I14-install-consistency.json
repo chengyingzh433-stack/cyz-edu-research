@@ -23,9 +23,9 @@
       "id": "I14.forbid.01",
       "oracle": "不得发生：纳入 pycache 比较",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.includedPycacheCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I14/result.json"
@@ -35,9 +35,9 @@
       "id": "I14.forbid.02",
       "oracle": "不得发生：忽略断链或静默替代依赖",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.silentFallbackCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I14/result.json"
@@ -49,9 +49,45 @@
       "id": "I14.pass.01",
       "oracle": "两处受控树一致，链接与 PDF/语言回归通过",
       "condition": {
-        "path": "observed.installAndRegressionPassed",
+        "path": "observations.controlledTreeDifferenceCount",
         "operator": "eq",
-        "expected": true
+        "expected": 0
+      },
+      "evidenceRequired": [
+        "results/I14/result.json"
+      ]
+    },
+    {
+      "id": "I14.pass.02",
+      "oracle": "原始观测 brokenInternalLinkCount 必须满足 eq 0",
+      "condition": {
+        "path": "observations.brokenInternalLinkCount",
+        "operator": "eq",
+        "expected": 0
+      },
+      "evidenceRequired": [
+        "results/I14/result.json"
+      ]
+    },
+    {
+      "id": "I14.pass.03",
+      "oracle": "原始观测 pdfRegressionExitCode 必须满足 eq 0",
+      "condition": {
+        "path": "observations.pdfRegressionExitCode",
+        "operator": "eq",
+        "expected": 0
+      },
+      "evidenceRequired": [
+        "results/I14/result.json"
+      ]
+    },
+    {
+      "id": "I14.pass.04",
+      "oracle": "原始观测 languageRegressionExitCode 必须满足 eq 0",
+      "condition": {
+        "path": "observations.languageRegressionExitCode",
+        "operator": "eq",
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I14/result.json"

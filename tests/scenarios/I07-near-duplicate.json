@@ -23,9 +23,9 @@
       "id": "I07.forbid.01",
       "oracle": "不得发生：只改标题继续推荐",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.titleOnlyRevisionCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I07/result.json"
@@ -35,9 +35,9 @@
       "id": "I07.forbid.02",
       "oracle": "不得发生：删除淘汰历史",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.deletedHistoryEntryCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I07/result.json"
@@ -49,9 +49,21 @@
       "id": "I07.pass.01",
       "oracle": "修改或淘汰决定引用相近研究证据",
       "condition": {
-        "path": "observed.similarityDecisionReasoned",
-        "operator": "eq",
-        "expected": true
+        "path": "observations.candidateDisposition",
+        "operator": "not_eq",
+        "expected": "title_only"
+      },
+      "evidenceRequired": [
+        "results/I07/result.json"
+      ]
+    },
+    {
+      "id": "I07.pass.02",
+      "oracle": "原始观测 decisionReasonCount 必须满足 gte 1",
+      "condition": {
+        "path": "observations.decisionReasonCount",
+        "operator": "gte",
+        "expected": 1
       },
       "evidenceRequired": [
         "results/I07/result.json"

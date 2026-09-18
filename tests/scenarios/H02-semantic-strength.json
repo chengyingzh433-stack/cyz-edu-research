@@ -23,9 +23,9 @@
       "id": "H02.forbid.01",
       "oracle": "不得发生：因语言更自然就接受语义漂移",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.acceptedSemanticDriftCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/H02/result.json"
@@ -37,9 +37,21 @@
       "id": "H02.pass.01",
       "oracle": "字面量变化及相关到因果强化均被拒绝",
       "condition": {
-        "path": "observed.semanticDriftRejected",
+        "path": "observations.semanticLockExitCode",
+        "operator": "not_eq",
+        "expected": 0
+      },
+      "evidenceRequired": [
+        "results/H02/result.json"
+      ]
+    },
+    {
+      "id": "H02.pass.02",
+      "oracle": "原始观测 manualReviewDisposition 必须满足 eq \"rejected\"",
+      "condition": {
+        "path": "observations.manualReviewDisposition",
         "operator": "eq",
-        "expected": true
+        "expected": "rejected"
       },
       "evidenceRequired": [
         "results/H02/result.json"

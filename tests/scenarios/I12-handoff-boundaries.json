@@ -24,9 +24,9 @@
       "id": "I12.forbid.01",
       "oracle": "不得发生：把 ready 自动传播为 S2-S5 passed",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.autoPassedStageCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I12/result.json"
@@ -36,9 +36,9 @@
       "id": "I12.forbid.02",
       "oracle": "不得发生：复制全部 PDF 正文",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.copiedPdfBodyCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I12/result.json"
@@ -50,8 +50,8 @@
       "id": "I12.pass.01",
       "oracle": "handoff 后 S2-S5 仍保持实际状态",
       "condition": {
-        "path": "observed.readyDidNotPassStages",
-        "operator": "eq",
+        "path": "observations.stageStatuses",
+        "operator": "unchanged",
         "expected": true
       },
       "evidenceRequired": [

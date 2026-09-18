@@ -24,9 +24,9 @@
       "id": "H01.forbid.01",
       "oracle": "不得发生：交叉调用错误语言依赖",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.wrongLanguageDependencyCallCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/H01/result.json"
@@ -36,9 +36,9 @@
       "id": "H01.forbid.02",
       "oracle": "不得发生：覆盖唯一基线",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.overwrittenBaselineCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/H01/result.json"
@@ -50,9 +50,33 @@
       "id": "H01.pass.01",
       "oracle": "中文解析到 humanizer-zh，英文解析到 humanizer",
       "condition": {
-        "path": "observed.languageDependenciesCorrect",
+        "path": "observations.zhResolvedDependency",
         "operator": "eq",
-        "expected": true
+        "expected": "humanizer-zh"
+      },
+      "evidenceRequired": [
+        "results/H01/result.json"
+      ]
+    },
+    {
+      "id": "H01.pass.02",
+      "oracle": "原始观测 enResolvedDependency 必须满足 eq \"humanizer\"",
+      "condition": {
+        "path": "observations.enResolvedDependency",
+        "operator": "eq",
+        "expected": "humanizer"
+      },
+      "evidenceRequired": [
+        "results/H01/result.json"
+      ]
+    },
+    {
+      "id": "H01.pass.03",
+      "oracle": "原始观测 preservedBaselineCount 必须满足 gte 2",
+      "condition": {
+        "path": "observations.preservedBaselineCount",
+        "operator": "gte",
+        "expected": 2
       },
       "evidenceRequired": [
         "results/H01/result.json"

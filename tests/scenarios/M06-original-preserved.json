@@ -23,9 +23,9 @@
       "id": "M06.forbid.01",
       "oracle": "不得发生：修改、重命名或删除原件",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.sourceMutationOperationCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/M06/result.json"
@@ -37,8 +37,8 @@
       "id": "M06.pass.01",
       "oracle": "原件转换前后 SHA256 完全一致",
       "condition": {
-        "path": "observed.originalHashUnchanged",
-        "operator": "eq",
+        "path": "observations.sourceHashes",
+        "operator": "unchanged",
         "expected": true
       },
       "evidenceRequired": [

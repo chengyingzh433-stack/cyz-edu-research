@@ -23,9 +23,9 @@
       "id": "I06.forbid.01",
       "oracle": "不得发生：把计划数据写成已有",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.plannedMaterialMisclassifiedCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I06/result.json"
@@ -35,9 +35,9 @@
       "id": "I06.forbid.02",
       "oracle": "不得发生：隐藏课堂收集负担",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.hiddenCollectionBurdenCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I06/result.json"
@@ -49,9 +49,21 @@
       "id": "I06.pass.01",
       "oracle": "材料路径清楚区分已有、可取得和需新增",
       "condition": {
-        "path": "observed.materialPathsPartitioned",
-        "operator": "eq",
-        "expected": true
+        "path": "observations.existingMaterialCount",
+        "operator": "gte",
+        "expected": 1
+      },
+      "evidenceRequired": [
+        "results/I06/result.json"
+      ]
+    },
+    {
+      "id": "I06.pass.02",
+      "oracle": "原始观测 plannedNewMaterialCount 必须满足 gte 1",
+      "condition": {
+        "path": "observations.plannedNewMaterialCount",
+        "operator": "gte",
+        "expected": 1
       },
       "evidenceRequired": [
         "results/I06/result.json"

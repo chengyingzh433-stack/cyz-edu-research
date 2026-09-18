@@ -24,9 +24,9 @@
       "id": "I11.forbid.01",
       "oracle": "不得发生：删除旧决定",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.deletedDecisionCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I11/result.json"
@@ -36,9 +36,9 @@
       "id": "I11.forbid.02",
       "oracle": "不得发生：保持 ready 且不标记下游",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.staleReadyArtifactCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I11/result.json"
@@ -50,9 +50,33 @@
       "id": "I11.pass.01",
       "oracle": "相关决定失效、历史保留且下游成果需复核",
       "condition": {
-        "path": "observed.evidenceReversalHandled",
-        "operator": "eq",
-        "expected": true
+        "path": "observations.ideaRevisionDelta",
+        "operator": "gte",
+        "expected": 1
+      },
+      "evidenceRequired": [
+        "results/I11/result.json"
+      ]
+    },
+    {
+      "id": "I11.pass.02",
+      "oracle": "原始观测 preservedDecisionHistoryCount 必须满足 gte 1",
+      "condition": {
+        "path": "observations.preservedDecisionHistoryCount",
+        "operator": "gte",
+        "expected": 1
+      },
+      "evidenceRequired": [
+        "results/I11/result.json"
+      ]
+    },
+    {
+      "id": "I11.pass.03",
+      "oracle": "原始观测 downstreamReviewMarkerCount 必须满足 gte 1",
+      "condition": {
+        "path": "observations.downstreamReviewMarkerCount",
+        "operator": "gte",
+        "expected": 1
       },
       "evidenceRequired": [
         "results/I11/result.json"

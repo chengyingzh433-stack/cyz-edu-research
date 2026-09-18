@@ -24,9 +24,9 @@
       "id": "I03.forbid.01",
       "oracle": "不得发生：重扫整个学科",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.wholeDisciplineRescanCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I03/result.json"
@@ -36,9 +36,9 @@
       "id": "I03.forbid.02",
       "oracle": "不得发生：未经确认直接进入写作",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.prematureWritingTransitionCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I03/result.json"
@@ -50,9 +50,21 @@
       "id": "I03.pass.01",
       "oracle": "入口为 refinement；交互一次只问一个关键问题",
       "condition": {
-        "path": "observed.refinementInteractionPassed",
+        "path": "observations.ideaMode",
         "operator": "eq",
-        "expected": true
+        "expected": "refinement"
+      },
+      "evidenceRequired": [
+        "results/I03/result.json"
+      ]
+    },
+    {
+      "id": "I03.pass.02",
+      "oracle": "原始观测 maxQuestionsPerTurn 必须满足 lte 1",
+      "condition": {
+        "path": "observations.maxQuestionsPerTurn",
+        "operator": "lte",
+        "expected": 1
       },
       "evidenceRequired": [
         "results/I03/result.json"

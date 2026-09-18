@@ -23,9 +23,9 @@
       "id": "M02.forbid.01",
       "oracle": "不得发生：创建第二任务",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.createdSecondTaskCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/M02/result.json"
@@ -35,9 +35,9 @@
       "id": "M02.forbid.02",
       "oracle": "不得发生：丢失源任务追溯",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.missingSourceLineageCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/M02/result.json"
@@ -49,9 +49,69 @@
       "id": "M02.pass.01",
       "oracle": "没有新增提交且复用 manifest 指向源 task ID",
       "condition": {
-        "path": "observed.cacheReusePassed",
+        "path": "observations.conversionInvocationCount",
         "operator": "eq",
-        "expected": true
+        "expected": 0
+      },
+      "evidenceRequired": [
+        "results/M02/result.json"
+      ]
+    },
+    {
+      "id": "M02.pass.02",
+      "oracle": "原始观测 submissionCountDelta 必须满足 eq 0",
+      "condition": {
+        "path": "observations.submissionCountDelta",
+        "operator": "eq",
+        "expected": 0
+      },
+      "evidenceRequired": [
+        "results/M02/result.json"
+      ]
+    },
+    {
+      "id": "M02.pass.03",
+      "oracle": "原始观测 cacheHitCount 必须满足 gte 1",
+      "condition": {
+        "path": "observations.cacheHitCount",
+        "operator": "gte",
+        "expected": 1
+      },
+      "evidenceRequired": [
+        "results/M02/result.json"
+      ]
+    },
+    {
+      "id": "M02.pass.04",
+      "oracle": "原始观测 sourceFingerprintMatchCount 必须满足 gte 1",
+      "condition": {
+        "path": "observations.sourceFingerprintMatchCount",
+        "operator": "gte",
+        "expected": 1
+      },
+      "evidenceRequired": [
+        "results/M02/result.json"
+      ]
+    },
+    {
+      "id": "M02.pass.05",
+      "oracle": "原始观测 parameterFingerprintMatchCount 必须满足 gte 1",
+      "condition": {
+        "path": "observations.parameterFingerprintMatchCount",
+        "operator": "gte",
+        "expected": 1
+      },
+      "evidenceRequired": [
+        "results/M02/result.json"
+      ]
+    },
+    {
+      "id": "M02.pass.06",
+      "oracle": "原始观测 lineageTaskIdCount 必须满足 gte 1",
+      "condition": {
+        "path": "observations.lineageTaskIdCount",
+        "operator": "gte",
+        "expected": 1
       },
       "evidenceRequired": [
         "results/M02/result.json"

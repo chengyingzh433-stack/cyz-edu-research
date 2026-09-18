@@ -23,9 +23,9 @@
       "id": "M04.forbid.01",
       "oracle": "不得发生：仅写 reused 而无源 task ID",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.missingSourceTaskIdCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/M04/result.json"
@@ -35,9 +35,9 @@
       "id": "M04.forbid.02",
       "oracle": "不得发生：跨 source hash 复用",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.crossSourceReuseCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/M04/result.json"
@@ -49,9 +49,33 @@
       "id": "M04.pass.01",
       "oracle": "可追溯到完成任务、原文件 hash 和参数",
       "condition": {
-        "path": "observed.lineageResolved",
-        "operator": "eq",
-        "expected": true
+        "path": "observations.lineageDepth",
+        "operator": "gte",
+        "expected": 1
+      },
+      "evidenceRequired": [
+        "results/M04/result.json"
+      ]
+    },
+    {
+      "id": "M04.pass.02",
+      "oracle": "原始观测 sourceFingerprintMatchCount 必须满足 gte 1",
+      "condition": {
+        "path": "observations.sourceFingerprintMatchCount",
+        "operator": "gte",
+        "expected": 1
+      },
+      "evidenceRequired": [
+        "results/M04/result.json"
+      ]
+    },
+    {
+      "id": "M04.pass.03",
+      "oracle": "原始观测 parameterFingerprintMatchCount 必须满足 gte 1",
+      "condition": {
+        "path": "observations.parameterFingerprintMatchCount",
+        "operator": "gte",
+        "expected": 1
       },
       "evidenceRequired": [
         "results/M04/result.json"

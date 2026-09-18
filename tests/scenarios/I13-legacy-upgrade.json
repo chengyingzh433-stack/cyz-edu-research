@@ -23,9 +23,9 @@
       "id": "I13.forbid.01",
       "oracle": "不得发生：覆盖旧问题或原件",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.overwrittenLegacyFileCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I13/result.json"
@@ -35,9 +35,9 @@
       "id": "I13.forbid.02",
       "oracle": "不得发生：重复迁移改变字节",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.secondMigrationChangedFileCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I13/result.json"
@@ -49,9 +49,33 @@
       "id": "I13.pass.01",
       "oracle": "旧内容有原字节备份、二次迁移不变且新项目 schema=2",
       "condition": {
-        "path": "observed.migrationAndInitializationPassed",
-        "operator": "eq",
+        "path": "observations.legacyFileHashes",
+        "operator": "unchanged",
         "expected": true
+      },
+      "evidenceRequired": [
+        "results/I13/result.json"
+      ]
+    },
+    {
+      "id": "I13.pass.02",
+      "oracle": "原始观测 secondMigrationChangedFileCount 必须满足 eq 0",
+      "condition": {
+        "path": "observations.secondMigrationChangedFileCount",
+        "operator": "eq",
+        "expected": 0
+      },
+      "evidenceRequired": [
+        "results/I13/result.json"
+      ]
+    },
+    {
+      "id": "I13.pass.03",
+      "oracle": "原始观测 newProjectSchemaVersion 必须满足 eq 2",
+      "condition": {
+        "path": "observations.newProjectSchemaVersion",
+        "operator": "eq",
+        "expected": 2
       },
       "evidenceRequired": [
         "results/I13/result.json"

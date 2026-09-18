@@ -23,9 +23,9 @@
       "id": "H04.forbid.01",
       "oracle": "不得发生：沿用旧通过状态导出",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.staleReviewExportCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/H04/result.json"
@@ -37,9 +37,21 @@
       "id": "H04.pass.01",
       "oracle": "hash 不同后状态回到处理中或需复核",
       "condition": {
-        "path": "observed.changedDraftInvalidatedReview",
+        "path": "observations.manuscriptHashes",
+        "operator": "unchanged",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/H04/result.json"
+      ]
+    },
+    {
+      "id": "H04.pass.02",
+      "oracle": "原始观测 reviewStatus 必须满足 eq \"needs_review\"",
+      "condition": {
+        "path": "observations.reviewStatus",
         "operator": "eq",
-        "expected": true
+        "expected": "needs_review"
       },
       "evidenceRequired": [
         "results/H04/result.json"

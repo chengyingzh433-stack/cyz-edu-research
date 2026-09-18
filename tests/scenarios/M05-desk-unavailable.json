@@ -24,9 +24,9 @@
       "id": "M05.forbid.01",
       "oracle": "不得发生：自动上传云端",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.cloudUploadCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/M05/result.json"
@@ -36,9 +36,9 @@
       "id": "M05.forbid.02",
       "oracle": "不得发生：捏造文字",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.fabricatedPageTextCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/M05/result.json"
@@ -48,9 +48,9 @@
       "id": "M05.forbid.03",
       "oracle": "不得发生：中断后重复提交",
       "condition": {
-        "path": "observed.forbidden03Occurred",
+        "path": "observations.duplicateSubmissionCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/M05/result.json"
@@ -62,9 +62,33 @@
       "id": "M05.pass.01",
       "oracle": "无云上传、未识别页明确且恢复后只提交一次",
       "condition": {
-        "path": "observed.localFallbackPassed",
+        "path": "observations.cloudUploadCount",
         "operator": "eq",
-        "expected": true
+        "expected": 0
+      },
+      "evidenceRequired": [
+        "results/M05/result.json"
+      ]
+    },
+    {
+      "id": "M05.pass.02",
+      "oracle": "原始观测 unrecognizedPageCount 必须满足 gte 1",
+      "condition": {
+        "path": "observations.unrecognizedPageCount",
+        "operator": "gte",
+        "expected": 1
+      },
+      "evidenceRequired": [
+        "results/M05/result.json"
+      ]
+    },
+    {
+      "id": "M05.pass.03",
+      "oracle": "原始观测 submissionCount 必须满足 eq 1",
+      "condition": {
+        "path": "observations.submissionCount",
+        "operator": "eq",
+        "expected": 1
       },
       "evidenceRequired": [
         "results/M05/result.json"

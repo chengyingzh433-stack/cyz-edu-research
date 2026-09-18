@@ -23,9 +23,9 @@
       "id": "M03.forbid.01",
       "oracle": "不得发生：接受部分缓存",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.acceptedPartialCacheCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/M03/result.json"
@@ -35,9 +35,9 @@
       "id": "M03.forbid.02",
       "oracle": "不得发生：把 running 当完成",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.runningTaskPublishedCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/M03/result.json"
@@ -49,9 +49,33 @@
       "id": "M03.pass.01",
       "oracle": "每个损坏变体均被拒绝且原因可区分",
       "condition": {
-        "path": "observed.invalidCachesRejected",
+        "path": "observations.invalidVariantCount",
+        "operator": "gte",
+        "expected": 5
+      },
+      "evidenceRequired": [
+        "results/M03/result.json"
+      ]
+    },
+    {
+      "id": "M03.pass.02",
+      "oracle": "原始观测 rejectedInvalidVariantCount 必须满足 gte 5",
+      "condition": {
+        "path": "observations.rejectedInvalidVariantCount",
+        "operator": "gte",
+        "expected": 5
+      },
+      "evidenceRequired": [
+        "results/M03/result.json"
+      ]
+    },
+    {
+      "id": "M03.pass.03",
+      "oracle": "原始观测 acceptedInvalidVariantCount 必须满足 eq 0",
+      "condition": {
+        "path": "observations.acceptedInvalidVariantCount",
         "operator": "eq",
-        "expected": true
+        "expected": 0
       },
       "evidenceRequired": [
         "results/M03/result.json"

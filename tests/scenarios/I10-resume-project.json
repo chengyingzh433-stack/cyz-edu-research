@@ -23,9 +23,9 @@
       "id": "I10.forbid.01",
       "oracle": "不得发生：重置决定",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.decisionResetCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I10/result.json"
@@ -35,9 +35,9 @@
       "id": "I10.forbid.02",
       "oracle": "不得发生：重转 hash 相同的缓存",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.cacheReconversionCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I10/result.json"
@@ -49,8 +49,20 @@
       "id": "I10.pass.01",
       "oracle": "恢复前后决定与有效缓存 hash 一致",
       "condition": {
-        "path": "observed.resumePreservedState",
-        "operator": "eq",
+        "path": "observations.decisionHashes",
+        "operator": "unchanged",
+        "expected": true
+      },
+      "evidenceRequired": [
+        "results/I10/result.json"
+      ]
+    },
+    {
+      "id": "I10.pass.02",
+      "oracle": "原始观测 cacheHashes 必须满足 unchanged true",
+      "condition": {
+        "path": "observations.cacheHashes",
+        "operator": "unchanged",
         "expected": true
       },
       "evidenceRequired": [

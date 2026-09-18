@@ -23,9 +23,9 @@
       "id": "I09.forbid.01",
       "oracle": "不得发生：强制量化假设或消融",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.forcedQuantitativeHypothesisCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I09/result.json"
@@ -35,9 +35,9 @@
       "id": "I09.forbid.02",
       "oracle": "不得发生：用满意度替代学习成效",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.satisfactionAsOutcomeCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I09/result.json"
@@ -49,9 +49,21 @@
       "id": "I09.pass.01",
       "oracle": "证据路线与问题类型一致并注明不适用项",
       "condition": {
-        "path": "observed.evidencePathFitsQuestion",
-        "operator": "eq",
-        "expected": true
+        "path": "observations.evidenceRouteCount",
+        "operator": "gte",
+        "expected": 1
+      },
+      "evidenceRequired": [
+        "results/I09/result.json"
+      ]
+    },
+    {
+      "id": "I09.pass.02",
+      "oracle": "原始观测 notApplicableRequirementCount 必须满足 gte 1",
+      "condition": {
+        "path": "observations.notApplicableRequirementCount",
+        "operator": "gte",
+        "expected": 1
       },
       "evidenceRequired": [
         "results/I09/result.json"

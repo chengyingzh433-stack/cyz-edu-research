@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "contracts" / "workflow-v1.json"
 SCENARIO_ROOT = ROOT / "tests" / "scenarios"
 SCHEMA_PATH = SCENARIO_ROOT / "scenario-contract.schema.json"
+RESULT_SCHEMA_PATH = SCENARIO_ROOT / "result-contract.schema.json"
 
 SCENARIO_FILES = {
     "I01": "I01-discovery-domain.json",
@@ -48,8 +49,10 @@ REQUIRED_ENTITY_FIELDS = {
 }
 WF_IDS = {f"WF{i:02d}" for i in range(1, 13)}
 EVIDENCE_PATH = re.compile(
-    r"^results/[IHM][0-9]{2}/(?:[A-Za-z0-9._-]+/)*[A-Za-z0-9._-]+$"
+    r"^results/[IHM][0-9]{2}/(?:(?!\.+(?:/|$))[A-Za-z0-9._-]+/)*"
+    r"(?!\.+$)[A-Za-z0-9._-]+$"
 )
+OPAQUE_BOOLEAN_NAME = re.compile(r"(?:passed|valid|unchanged)$", re.IGNORECASE)
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -226,10 +229,13 @@ class WorkflowContractTests(unittest.TestCase):
             "C:/evidence.json",
             "//server/share/evidence.json",
             "results/I01/../evidence.json",
+            "results/I01/./evidence.json",
+            "results/I01/.../evidence.json",
             "results/I02/wrong-scenario.json",
         ):
             unsafe_evidence = copy.deepcopy(original)
             unsafe_evidence["evidence"][0] = unsafe_path
+            unsafe_evidence["passCriteria"][0]["evidenceRequired"][0] = unsafe_path
             mutations.append((f"unsafe evidence path {unsafe_path}", unsafe_evidence))
 
         undeclared_evidence = copy.deepcopy(original)
@@ -238,10 +244,15 @@ class WorkflowContractTests(unittest.TestCase):
         ]
         mutations.append(("criterion evidence not declared at top level", undeclared_evidence))
 
+        unsupported_schema = copy.deepcopy(schema)
+        unsupported_schema["properties"]["title"]["maxLength"] = 100
+
         for label, mutation in mutations:
             with self.subTest(mutation=label):
                 with self.assertRaises(SchemaValidationError):
                     validate_scenario(mutation, schema)
+        with self.assertRaisesRegex(SchemaValidationError, "unsupported schema keyword"):
+            validate_scenario(original, unsupported_schema)
 
     def test_condition_dsl_has_a_safe_non_eval_evaluator(self):
         from tests.scenarios.schema_validator import (
@@ -278,6 +289,57 @@ class WorkflowContractTests(unittest.TestCase):
             evaluate_condition(
                 observed, {"path": "checks.passed", "operator": "eval", "expected": True}
             )
+        self.assertFalse(
+            evaluate_condition(
+                {"value": True}, {"path": "value", "operator": "eq", "expected": 1}
+            )
+        )
+        self.assertFalse(
+            evaluate_condition(
+                {"value": False}, {"path": "value", "operator": "eq", "expected": 0}
+            )
+        )
+        self.assertTrue(
+            evaluate_condition(
+                {"value": True}, {"path": "value", "operator": "not_eq", "expected": 1}
+            )
+        )
+        self.assertTrue(
+            evaluate_condition(
+                {"value": False}, {"path": "value", "operator": "not_eq", "expected": 0}
+            )
+        )
+        self.assertFalse(
+            evaluate_condition(
+                {"pair": {"before": True, "after": 1}},
+                {"path": "pair", "operator": "unchanged", "expected": True},
+            )
+        )
+
+    def test_result_document_contract_defines_raw_observation_shape(self):
+        from tests.scenarios.schema_validator import validate_instance
+
+        schema = load_json(RESULT_SCHEMA_PATH)
+        self.assertEqual(1, schema["properties"]["resultContractVersion"]["enum"][0])
+        self.assertEqual(
+            {"resultContractVersion", "scenarioId", "recordedAt", "status", "observations", "sourceEvidence"},
+            set(schema["required"]),
+        )
+        self.assertEqual("object", schema["properties"]["observations"]["type"])
+        self.assertGreaterEqual(schema["properties"]["observations"]["minProperties"], 1)
+        validate_instance(
+            {
+                "resultContractVersion": 1,
+                "scenarioId": "M06",
+                "recordedAt": "2026-09-19T00:00:00+08:00",
+                "status": "observed",
+                "observations": {
+                    "sourceHashes": {"before": "abc", "after": "abc"}
+                },
+                "sourceEvidence": ["results/M06/artifacts/source-hashes.json"],
+            },
+            schema,
+        )
 
     def test_every_required_scenario_has_an_oracle(self):
         self.assertEqual(
@@ -342,6 +404,49 @@ class WorkflowContractTests(unittest.TestCase):
                     self.assertTrue(evidence_path.startswith(f"results/{scenario_id}/"))
                     self.assertNotIn("..", evidence_path.split("/"))
                     self.assertNotIn("\\", evidence_path)
+
+    def test_criteria_read_raw_observations_not_aggregate_attestations(self):
+        criterion_count = 0
+        for scenario_id, item in load_scenarios().items():
+            for group_name in ("passCriteria", "forbiddenBehavior"):
+                for criterion in item[group_name]:
+                    criterion_count += 1
+                    condition = criterion["condition"]
+                    leaf = condition["path"].split(".")[-1]
+                    with self.subTest(scenario=scenario_id, criterion=criterion["id"]):
+                        self.assertTrue(condition["path"].startswith("observations."))
+                        if isinstance(condition["expected"], bool):
+                            self.assertNotRegex(leaf, OPAQUE_BOOLEAN_NAME)
+        self.assertGreaterEqual(criterion_count, 70)
+
+        scenarios = load_scenarios()
+        m02 = {
+            criterion["condition"]["path"]
+            for criterion in scenarios["M02"]["passCriteria"]
+        }
+        self.assertTrue(
+            {
+                "observations.conversionInvocationCount",
+                "observations.submissionCountDelta",
+                "observations.cacheHitCount",
+                "observations.sourceFingerprintMatchCount",
+                "observations.parameterFingerprintMatchCount",
+                "observations.lineageTaskIdCount",
+            }
+            <= m02
+        )
+        m06 = scenarios["M06"]["passCriteria"]
+        self.assertTrue(
+            any(
+                item["condition"]
+                == {
+                    "path": "observations.sourceHashes",
+                    "operator": "unchanged",
+                    "expected": True,
+                }
+                for item in m06
+            )
+        )
 
     def test_original_idea_scenarios_keep_one_to_one_numbering(self):
         scenarios = load_scenarios()

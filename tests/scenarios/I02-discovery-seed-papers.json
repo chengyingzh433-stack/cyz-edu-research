@@ -23,9 +23,9 @@
       "id": "I02.forbid.01",
       "oracle": "不得发生：重复询问文献已有信息",
       "condition": {
-        "path": "observed.forbidden01Occurred",
+        "path": "observations.repeatedKnownQuestionCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I02/result.json"
@@ -35,9 +35,9 @@
       "id": "I02.forbid.02",
       "oracle": "不得发生：机械凑候选数量",
       "condition": {
-        "path": "observed.forbidden02Occurred",
+        "path": "observations.unsupportedCandidatePaddingCount",
         "operator": "eq",
-        "expected": false
+        "expected": 0
       },
       "evidenceRequired": [
         "results/I02/result.json"
@@ -49,9 +49,33 @@
       "id": "I02.pass.01",
       "oracle": "检索记录引用既有 paper_id 并说明补查范围与停止条件",
       "condition": {
-        "path": "observed.seedReuseAndCoverageBoundPassed",
+        "path": "observations.seedMaterialReuseCount",
+        "operator": "gte",
+        "expected": 1
+      },
+      "evidenceRequired": [
+        "results/I02/result.json"
+      ]
+    },
+    {
+      "id": "I02.pass.02",
+      "oracle": "原始观测 duplicateConversionCount 必须满足 eq 0",
+      "condition": {
+        "path": "observations.duplicateConversionCount",
         "operator": "eq",
-        "expected": true
+        "expected": 0
+      },
+      "evidenceRequired": [
+        "results/I02/result.json"
+      ]
+    },
+    {
+      "id": "I02.pass.03",
+      "oracle": "原始观测 supplementSearchStopCondition 必须满足 not_eq \"\"",
+      "condition": {
+        "path": "observations.supplementSearchStopCondition",
+        "operator": "not_eq",
+        "expected": ""
       },
       "evidenceRequired": [
         "results/I02/result.json"

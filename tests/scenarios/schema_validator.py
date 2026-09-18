@@ -13,6 +13,93 @@ class SchemaValidationError(ValueError):
     pass
 
 
+_SUPPORTED_SCHEMA_KEYWORDS = {
+    "$schema",
+    "$id",
+    "$defs",
+    "$ref",
+    "title",
+    "description",
+    "type",
+    "required",
+    "properties",
+    "additionalProperties",
+    "enum",
+    "pattern",
+    "minLength",
+    "minimum",
+    "maximum",
+    "minItems",
+    "minProperties",
+    "uniqueItems",
+    "items",
+    "allOf",
+    "if",
+    "then",
+}
+_JSON_TYPES = {"object", "array", "string", "boolean", "integer", "number", "null"}
+
+
+def _validate_schema_node(schema: Any, path: str = "$") -> None:
+    if not isinstance(schema, dict):
+        raise SchemaValidationError(f"{path}: schema node must be an object")
+    unsupported = set(schema) - _SUPPORTED_SCHEMA_KEYWORDS
+    if unsupported:
+        raise SchemaValidationError(
+            f"{path}: unsupported schema keyword(s): {sorted(unsupported)}"
+        )
+
+    declared_types = schema.get("type", [])
+    declared_types = [declared_types] if isinstance(declared_types, str) else declared_types
+    if not isinstance(declared_types, list) or any(
+        item not in _JSON_TYPES for item in declared_types
+    ):
+        raise SchemaValidationError(f"{path}: invalid schema type declaration")
+
+    for list_keyword in ("required", "enum"):
+        if list_keyword in schema and not isinstance(schema[list_keyword], list):
+            raise SchemaValidationError(f"{path}.{list_keyword}: must be an array")
+    for string_keyword in ("$schema", "$id", "$ref", "title", "description", "pattern"):
+        if string_keyword in schema and not isinstance(schema[string_keyword], str):
+            raise SchemaValidationError(f"{path}.{string_keyword}: must be a string")
+    for integer_keyword in ("minLength", "minItems", "minProperties"):
+        value = schema.get(integer_keyword, 0)
+        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+            raise SchemaValidationError(
+                f"{path}.{integer_keyword}: must be a non-negative integer"
+            )
+    if "uniqueItems" in schema and not isinstance(schema["uniqueItems"], bool):
+        raise SchemaValidationError(f"{path}.uniqueItems: must be boolean")
+    if "additionalProperties" in schema and not isinstance(
+        schema["additionalProperties"], bool
+    ):
+        raise SchemaValidationError(f"{path}.additionalProperties: must be boolean")
+
+    for map_keyword in ("properties", "$defs"):
+        children = schema.get(map_keyword, {})
+        if not isinstance(children, dict):
+            raise SchemaValidationError(f"{path}.{map_keyword}: must be an object")
+        for name, child in children.items():
+            _validate_schema_node(child, f"{path}.{map_keyword}.{name}")
+    if "items" in schema:
+        _validate_schema_node(schema["items"], f"{path}.items")
+    for list_keyword in ("allOf",):
+        children = schema.get(list_keyword, [])
+        if not isinstance(children, list):
+            raise SchemaValidationError(f"{path}.{list_keyword}: must be an array")
+        for index, child in enumerate(children):
+            _validate_schema_node(child, f"{path}.{list_keyword}[{index}]")
+    for child_keyword in ("if", "then"):
+        if child_keyword in schema:
+            _validate_schema_node(schema[child_keyword], f"{path}.{child_keyword}")
+
+
+def validate_schema(schema: dict[str, Any]) -> None:
+    """Reject schemas outside the deliberately supported keyword subset."""
+
+    _validate_schema_node(schema)
+
+
 def _resolve_ref(root_schema: dict[str, Any], reference: str) -> dict[str, Any]:
     if not reference.startswith("#/"):
         raise SchemaValidationError(f"external schema reference is not allowed: {reference}")
@@ -56,7 +143,6 @@ def _matches(value: Any, schema: dict[str, Any], root: dict[str, Any]) -> bool:
 def _validate(value: Any, schema: dict[str, Any], root: dict[str, Any], path: str) -> None:
     if "$ref" in schema:
         _validate(value, _resolve_ref(root, schema["$ref"]), root, path)
-        return
 
     if "allOf" in schema:
         for index, child in enumerate(schema["allOf"]):
@@ -74,7 +160,7 @@ def _validate(value: Any, schema: dict[str, Any], root: dict[str, Any], path: st
                 f"{path}: expected type {expected_types}, got {type(value).__name__}"
             )
 
-    if "enum" in schema and value not in schema["enum"]:
+    if "enum" in schema and not any(_json_equal(value, item) for item in schema["enum"]):
         raise SchemaValidationError(f"{path}: value is not in enum")
 
     if isinstance(value, str):
@@ -101,6 +187,8 @@ def _validate(value: Any, schema: dict[str, Any], root: dict[str, Any], path: st
                 _validate(item, schema["items"], root, f"{path}[{index}]")
 
     if isinstance(value, dict):
+        if len(value) < schema.get("minProperties", 0):
+            raise SchemaValidationError(f"{path}: object has too few properties")
         required = schema.get("required", [])
         missing = [key for key in required if key not in value]
         if missing:
@@ -118,7 +206,27 @@ def _validate(value: Any, schema: dict[str, Any], root: dict[str, Any], path: st
 def validate_instance(instance: Any, schema: dict[str, Any]) -> None:
     """Validate an instance or raise SchemaValidationError."""
 
+    validate_schema(schema)
     _validate(instance, schema, schema, "$")
+
+
+def _json_equal(left: Any, right: Any) -> bool:
+    if isinstance(left, bool) or isinstance(right, bool):
+        return isinstance(left, bool) and isinstance(right, bool) and left == right
+    if isinstance(left, (int, float)) and isinstance(right, (int, float)):
+        return left == right
+    if type(left) is not type(right):
+        return False
+    if isinstance(left, list):
+        return len(left) == len(right) and all(
+            _json_equal(left_item, right_item)
+            for left_item, right_item in zip(left, right)
+        )
+    if isinstance(left, dict):
+        return set(left) == set(right) and all(
+            _json_equal(left[key], right[key]) for key in left
+        )
+    return left == right
 
 
 def _lookup(document: dict[str, Any], dotted_path: str) -> tuple[bool, Any]:
@@ -143,9 +251,9 @@ def evaluate_condition(document: dict[str, Any], condition: dict[str, Any]) -> b
     if not found:
         return False
     if operator == "eq":
-        return actual == expected
+        return _json_equal(actual, expected)
     if operator == "not_eq":
-        return actual != expected
+        return not _json_equal(actual, expected)
     if operator in {"gte", "lte"}:
         if (
             not isinstance(actual, (int, float))
@@ -162,7 +270,7 @@ def evaluate_condition(document: dict[str, Any], condition: dict[str, Any]) -> b
             raise SchemaValidationError(
                 "unchanged requires an object with exactly before and after"
             )
-        return (actual["before"] == actual["after"]) is expected
+        return _json_equal(actual["before"], actual["after"]) is expected
     raise SchemaValidationError(f"unsupported condition operator: {operator}")
 
 
