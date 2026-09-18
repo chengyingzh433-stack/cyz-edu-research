@@ -7,6 +7,7 @@ fixture validation reproducible on Python 3.11 without ambient packages.
 import json
 import re
 from datetime import datetime
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 
@@ -232,6 +233,9 @@ def validate_result(instance: dict[str, Any], schema: dict[str, Any]) -> None:
     recorded_at = instance["recordedAt"]
     if _ISO_8601_TIMESTAMP.fullmatch(recorded_at) is None:
         raise SchemaValidationError("recordedAt must be an ISO-8601 timestamp with timezone")
+    offset = re.search(r"[+-]([0-9]{2}):([0-9]{2})$", recorded_at)
+    if offset and (int(offset.group(1)) > 23 or int(offset.group(2)) > 59):
+        raise SchemaValidationError("recordedAt has an out-of-range timezone offset")
     try:
         parsed = datetime.fromisoformat(recorded_at.replace("Z", "+00:00"))
     except ValueError as error:
@@ -302,6 +306,83 @@ def evaluate_condition(document: dict[str, Any], condition: dict[str, Any]) -> b
             )
         return _json_equal(actual["before"], actual["after"]) is expected
     raise SchemaValidationError(f"unsupported condition operator: {operator}")
+
+
+def _load_contract_schema(filename: str) -> dict[str, Any]:
+    path = Path(__file__).with_name(filename)
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _normalized_result_path(result_path: str | Path) -> str:
+    raw = result_path.as_posix() if isinstance(result_path, Path) else str(result_path)
+    if (
+        not raw
+        or "\\" in raw
+        or raw.startswith("/")
+        or raw.startswith("//")
+        or re.match(r"^[A-Za-z]:", raw)
+    ):
+        raise SchemaValidationError("result_path must be a POSIX-relative path")
+    parts = raw.split("/")
+    if any(not part or re.fullmatch(r"\.+", part) for part in parts):
+        raise SchemaValidationError("result_path contains an unsafe path component")
+    normalized = PurePosixPath(raw).as_posix()
+    if normalized != raw:
+        raise SchemaValidationError("result_path is not normalized")
+    return normalized
+
+
+def evaluate_scenario_result(
+    scenario: dict[str, Any], result: dict[str, Any], result_path: str | Path
+) -> dict[str, Any]:
+    """Validate and evaluate one scenario result without trusting self-attestation."""
+
+    scenario_schema = _load_contract_schema("scenario-contract.schema.json")
+    result_schema = _load_contract_schema("result-contract.schema.json")
+    validate_scenario(scenario, scenario_schema)
+    validate_result(result, result_schema)
+
+    scenario_id = scenario["id"]
+    if result["scenarioId"] != scenario_id:
+        raise SchemaValidationError("result scenarioId does not match scenario id")
+    expected_path = f"results/{scenario_id}/result.json"
+    if expected_path not in scenario["evidence"]:
+        raise SchemaValidationError("scenario does not declare its canonical result path")
+    if _normalized_result_path(result_path) != expected_path:
+        raise SchemaValidationError("loaded result_path is not the canonical scenario result")
+
+    details = []
+    for group_name in ("passCriteria", "forbiddenBehavior"):
+        for criterion in scenario[group_name]:
+            satisfied = evaluate_condition(result, criterion["condition"])
+            details.append(
+                {
+                    "id": criterion["id"],
+                    "group": group_name,
+                    "oracle": criterion["oracle"],
+                    "condition": criterion["condition"],
+                    "evidenceRequired": criterion["evidenceRequired"],
+                    "satisfied": satisfied,
+                }
+            )
+
+    criteria_passed = all(item["satisfied"] for item in details)
+    result_status = result["status"]
+    if result_status in {"blocked", "incomplete"}:
+        outcome = result_status
+        passed = False
+    else:
+        outcome = "passed" if criteria_passed else "failed"
+        passed = criteria_passed
+    return {
+        "scenarioId": scenario_id,
+        "resultPath": expected_path,
+        "resultStatus": result_status,
+        "outcome": outcome,
+        "passed": passed,
+        "criteria": details,
+        "failedCriteria": [item["id"] for item in details if not item["satisfied"]],
+    }
 
 
 def validate_scenario(instance: dict[str, Any], schema: dict[str, Any]) -> None:

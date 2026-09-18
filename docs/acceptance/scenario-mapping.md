@@ -45,5 +45,7 @@
 - `eq`、`not_eq` 与 `unchanged` 按 JSON 类型比较；布尔值不会与数值 `0` 或 `1` 混同。`unchanged` 的观测值固定为 `{"before": ..., "after": ...}`。
 - 场景运行结果遵循 `result-contract.schema.json`：包含版本、24 个已声明场景之一的 ID、记录时间、状态、原始 `observations` 与来源证据。`validate_result` 额外执行 schema 无法表达的安全检查：`sourceEvidence` 必须属于结果自身的准确场景目录，`recordedAt` 必须是带 UTC `Z` 或显式时区偏移的有效 ISO-8601 时间。判据直接读取这些观测值，不允许用 `*Passed`、`*Valid`、`*Unchanged` 一类汇总布尔值自证成功。
 - 24 个场景当前锁定 108 条 criterion（62 条通过条件、46 条禁止行为）；数量变化必须由契约测试显式审查。
+- runner 统一调用 `evaluate_scenario_result(scenario, result, result_path)`；该入口同时验证两份契约、场景 ID、规范化的 `results/<id>/result.json` 加载路径和每条 criterion。结果状态为 `blocked` 或 `incomplete` 时，即使所有 predicate 满足也不会报告通过。
+- 时间戳偏移量先做严格范围检查（小时 `00`–`23`、分钟 `00`–`59`），再交由日期时间解析器验证日历日期、时分秒和时区；因此不会接受标准库可能归一化的 `+08:60`，也会拒绝 `+24:00`、闰秒和不存在的日期。
 - 所有证据路径必须是当前场景目录下的 POSIX 相对路径：`results/<scenario-id>/...`。绝对路径、盘符、UNC、反斜杠、任何纯点号路径段（`.`、`..`、`...` 等）、跨场景路径和未在顶层声明的 criterion 证据都会被拒绝。
 - 复现命令：`py -3.11 -m unittest tests.test_workflow_contract -v`。

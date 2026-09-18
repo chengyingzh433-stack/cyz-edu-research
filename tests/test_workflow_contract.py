@@ -375,6 +375,102 @@ class WorkflowContractTests(unittest.TestCase):
                 with self.assertRaises(SchemaValidationError):
                     validate_result(mutation, schema)
 
+    def test_result_timestamp_enforces_calendar_and_offset_ranges(self):
+        from tests.scenarios.schema_validator import SchemaValidationError, validate_result
+
+        schema = load_json(RESULT_SCHEMA_PATH)
+        result = {
+            "resultContractVersion": 1,
+            "scenarioId": "M06",
+            "recordedAt": "2026-09-19T00:00:00Z",
+            "status": "observed",
+            "observations": {"sourceHashes": {"before": "abc", "after": "abc"}},
+            "sourceEvidence": ["results/M06/artifacts/source-hashes.json"],
+        }
+        for timestamp in (
+            "2026-09-19T00:00:00Z",
+            "2026-09-19T23:59:59+14:00",
+            "2026-09-19T00:00:00-12:00",
+            "2026-09-19T00:00:00+23:59",
+        ):
+            with self.subTest(valid=timestamp):
+                candidate = copy.deepcopy(result)
+                candidate["recordedAt"] = timestamp
+                validate_result(candidate, schema)
+        for timestamp in (
+            "2026-09-19T00:00:00+08:60",
+            "2026-09-19T00:00:00+24:00",
+            "2026-09-19T23:59:60Z",
+            "2026-02-30T00:00:00Z",
+        ):
+            with self.subTest(invalid=timestamp):
+                candidate = copy.deepcopy(result)
+                candidate["recordedAt"] = timestamp
+                with self.assertRaises(SchemaValidationError):
+                    validate_result(candidate, schema)
+
+    def test_runner_facing_evaluator_closes_identity_path_and_status_gaps(self):
+        from tests.scenarios.schema_validator import (
+            SchemaValidationError,
+            evaluate_scenario_result,
+        )
+
+        scenario = load_scenarios()["M06"]
+        result = {
+            "resultContractVersion": 1,
+            "scenarioId": "M06",
+            "recordedAt": "2026-09-19T00:00:00Z",
+            "status": "observed",
+            "observations": {
+                "sourceHashes": {"before": "abc", "after": "abc"},
+                "sourceMutationOperationCount": 0,
+            },
+            "sourceEvidence": ["results/M06/artifacts/source-hashes.json"],
+        }
+        evaluation = evaluate_scenario_result(
+            scenario, result, "results/M06/result.json"
+        )
+        self.assertEqual("passed", evaluation["outcome"])
+        self.assertTrue(evaluation["passed"])
+        self.assertEqual(2, len(evaluation["criteria"]))
+        self.assertTrue(all(item["satisfied"] for item in evaluation["criteria"]))
+
+        failed = copy.deepcopy(result)
+        failed["observations"]["sourceMutationOperationCount"] = 1
+        evaluation = evaluate_scenario_result(
+            scenario, failed, "results/M06/result.json"
+        )
+        self.assertEqual("failed", evaluation["outcome"])
+        self.assertFalse(evaluation["passed"])
+        self.assertEqual(["M06.forbid.01"], evaluation["failedCriteria"])
+
+        cross_scenario = copy.deepcopy(result)
+        cross_scenario["scenarioId"] = "M05"
+        cross_scenario["sourceEvidence"] = ["results/M05/evidence.json"]
+        with self.assertRaises(SchemaValidationError):
+            evaluate_scenario_result(
+                scenario, cross_scenario, "results/M06/result.json"
+            )
+        for unsafe_path in (
+            "results/M06/../M06/result.json",
+            "results/M06/./result.json",
+            "C:/results/M06/result.json",
+        ):
+            with self.subTest(path=unsafe_path):
+                with self.assertRaises(SchemaValidationError):
+                    evaluate_scenario_result(scenario, result, unsafe_path)
+
+        for status in ("blocked", "incomplete"):
+            with self.subTest(status=status):
+                nonfinal = copy.deepcopy(result)
+                nonfinal["status"] = status
+                evaluation = evaluate_scenario_result(
+                    scenario, nonfinal, "results/M06/result.json"
+                )
+                self.assertFalse(evaluation["passed"])
+                self.assertEqual(status, evaluation["outcome"])
+                self.assertTrue(all(item["satisfied"] for item in evaluation["criteria"]))
+
     def test_every_required_scenario_has_an_oracle(self):
         self.assertEqual(
             set(SCENARIO_FILES.values()),
