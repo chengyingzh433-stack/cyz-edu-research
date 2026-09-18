@@ -1,15 +1,22 @@
+import hashlib
+import importlib.util
+import json
 import re
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
 INIT = ROOT / "skills" / "cyz-edu-research" / "scripts" / "init_project.py"
 VALIDATE = ROOT / "skills" / "cyz-edu-research" / "scripts" / "validate_project.py"
+MIGRATE = ROOT / "skills" / "cyz-edu-research" / "scripts" / "migrate_project.py"
+LEGACY_FIXTURE = ROOT / "tests" / "fixtures" / "legacy-project"
 
 
 def run_script(script: Path, project: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -627,6 +634,269 @@ class ProjectLifecycleTests(unittest.TestCase):
             "current_evidence does not reference an evidence record for idea_revision 1",
             result.stdout,
         )
+
+
+class MigrationTests(unittest.TestCase):
+    managed_files = ("00-项目状态.md", "01-研究起点与问题.md")
+
+    def make_legacy_project(self) -> tuple[tempfile.TemporaryDirectory[str], Path]:
+        temporary = tempfile.TemporaryDirectory()
+        project = Path(temporary.name) / "project"
+        initialized = run_script(INIT, project, "--entry-mode", "topic")
+        self.assertEqual(0, initialized.returncode, initialized.stderr)
+        for relative in self.managed_files:
+            shutil.copyfile(LEGACY_FIXTURE / relative, project / relative)
+        return temporary, project
+
+    @staticmethod
+    def sha256(data: bytes) -> str:
+        return hashlib.sha256(data).hexdigest()
+
+    @staticmethod
+    def project_snapshot(project: Path) -> dict[str, bytes]:
+        return {
+            path.relative_to(project).as_posix(): path.read_bytes()
+            for path in sorted(project.rglob("*"))
+            if path.is_file()
+        }
+
+    @staticmethod
+    def manifests(project: Path) -> list[Path]:
+        return sorted((project / ".cyz-migrations").glob("*/manifest.json"))
+
+    def test_check_reports_migratable_compatible_and_duplicate_markers(self):
+        temporary, legacy = self.make_legacy_project()
+        self.addCleanup(temporary.cleanup)
+
+        migratable = run_script(MIGRATE, legacy, "--check")
+
+        self.assertEqual(3, migratable.returncode, migratable.stdout + migratable.stderr)
+        self.assertIn("MIGRATABLE", migratable.stdout)
+
+        compatible_temp = tempfile.TemporaryDirectory()
+        self.addCleanup(compatible_temp.cleanup)
+        compatible = Path(compatible_temp.name) / "project"
+        initialized = run_script(INIT, compatible, "--entry-mode", "topic")
+        self.assertEqual(0, initialized.returncode, initialized.stderr)
+
+        checked = run_script(MIGRATE, compatible, "--check")
+
+        self.assertEqual(0, checked.returncode, checked.stdout + checked.stderr)
+        self.assertIn("COMPATIBLE", checked.stdout)
+
+        idea_path = legacy / "01-研究起点与问题.md"
+        idea_path.write_bytes(
+            idea_path.read_bytes()
+            + b"\n<!-- cyz:idea-canvas:start -->\n"
+            + b"<!-- cyz:idea-canvas:start -->\n"
+        )
+
+        malformed = run_script(MIGRATE, legacy, "--check")
+
+        self.assertEqual(2, malformed.returncode, malformed.stdout + malformed.stderr)
+        self.assertIn("managed markers", malformed.stderr)
+
+    def test_check_rejects_schema2_project_missing_required_field(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        project = Path(temporary.name) / "project"
+        initialized = run_script(INIT, project, "--entry-mode", "topic")
+        self.assertEqual(0, initialized.returncode, initialized.stderr)
+        state_path = project / "00-项目状态.md"
+        state_path.write_text(
+            re.sub(
+                r"(?m)^idea_revision:.*\n",
+                "",
+                state_path.read_text(encoding="utf-8"),
+            ),
+            encoding="utf-8",
+        )
+
+        checked = run_script(MIGRATE, project, "--check")
+
+        self.assertEqual(2, checked.returncode, checked.stdout + checked.stderr)
+        self.assertNotIn("COMPATIBLE", checked.stdout)
+        self.assertIn("idea_revision", checked.stderr)
+
+    def test_apply_preserves_legacy_bytes_and_records_hashes_and_backups(self):
+        temporary, project = self.make_legacy_project()
+        self.addCleanup(temporary.cleanup)
+        before = {
+            relative: (project / relative).read_bytes()
+            for relative in self.managed_files
+        }
+
+        result = run_script(MIGRATE, project, "--apply")
+
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        state = read_state(project)
+        self.assertEqual("2", state["workflow_schema"])
+        migrated_idea = (project / "01-研究起点与问题.md").read_bytes()
+        self.assertIn(b"<!-- cyz:legacy-record:start -->", migrated_idea)
+        self.assertIn(before["01-研究起点与问题.md"], migrated_idea)
+        self.assertIn(b"<!-- cyz:legacy-record:end -->", migrated_idea)
+
+        manifests = self.manifests(project)
+        self.assertEqual(1, len(manifests))
+        manifest = json.loads(manifests[0].read_text(encoding="utf-8"))
+        self.assertEqual("complete", manifest["phase"])
+        self.assertEqual("schema-2", manifest["target"])
+        self.assertEqual(list(self.managed_files), [item["path"] for item in manifest["files"]])
+        for item in manifest["files"]:
+            relative = item["path"]
+            self.assertEqual(self.sha256(before[relative]), item["before_sha256"])
+            self.assertEqual(
+                self.sha256((project / relative).read_bytes()),
+                item["after_sha256"],
+            )
+            backup = manifests[0].parent / item["backup_path"]
+            self.assertEqual(before[relative], backup.read_bytes())
+
+        validated = run_script(VALIDATE, project)
+        self.assertEqual(0, validated.returncode, validated.stdout + validated.stderr)
+
+    def test_second_apply_is_byte_identical_and_creates_no_manifest(self):
+        temporary, project = self.make_legacy_project()
+        self.addCleanup(temporary.cleanup)
+        first = run_script(MIGRATE, project, "--apply")
+        self.assertEqual(0, first.returncode, first.stdout + first.stderr)
+        after_first = self.project_snapshot(project)
+
+        second = run_script(MIGRATE, project, "--apply")
+
+        self.assertEqual(0, second.returncode, second.stdout + second.stderr)
+        self.assertEqual(after_first, self.project_snapshot(project))
+        self.assertEqual(1, len(self.manifests(project)))
+
+    def test_injected_failures_restore_originals_without_deleting_user_files(self):
+        for fault in ("before-backup", "after-backup", "before-replace"):
+            with self.subTest(fault=fault):
+                temporary, project = self.make_legacy_project()
+                self.addCleanup(temporary.cleanup)
+                user_file = project / "user-created-during-project.md"
+                user_file.write_bytes(b"owned by user\r\n")
+                before = {
+                    relative: (project / relative).read_bytes()
+                    for relative in self.managed_files
+                }
+
+                result = run_script(
+                    MIGRATE,
+                    project,
+                    "--apply",
+                    "--simulate-failure",
+                    fault,
+                )
+
+                self.assertEqual(1, result.returncode, result.stdout + result.stderr)
+                for relative, original in before.items():
+                    self.assertEqual(original, (project / relative).read_bytes())
+                self.assertEqual(b"owned by user\r\n", user_file.read_bytes())
+                self.assertNotIn("workflow_schema", read_state(project))
+                manifests = self.manifests(project)
+                self.assertEqual(1, len(manifests))
+                manifest = json.loads(manifests[0].read_text(encoding="utf-8"))
+                self.assertEqual("failed", manifest["phase"])
+                self.assertEqual(fault, manifest["failure"]["point"])
+                self.assertEqual([], manifest["changed_paths"])
+
+    def test_failure_after_first_replace_restores_changed_file_only(self):
+        temporary, project = self.make_legacy_project()
+        self.addCleanup(temporary.cleanup)
+        user_file = project / "user-created-during-project.md"
+        user_file.write_bytes(b"owned by user\r\n")
+        before = {
+            relative: (project / relative).read_bytes()
+            for relative in self.managed_files
+        }
+
+        result = run_script(
+            MIGRATE,
+            project,
+            "--apply",
+            "--simulate-failure",
+            "after-first-replace",
+        )
+
+        self.assertEqual(1, result.returncode, result.stdout + result.stderr)
+        for relative, original in before.items():
+            self.assertEqual(original, (project / relative).read_bytes())
+        self.assertEqual(b"owned by user\r\n", user_file.read_bytes())
+        self.assertNotIn("workflow_schema", read_state(project))
+        manifest_path = self.manifests(project)[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        self.assertEqual("failed", manifest["phase"])
+        self.assertEqual("after-first-replace", manifest["failure"]["point"])
+        self.assertEqual([self.managed_files[0]], manifest["changed_paths"])
+        self.assertEqual([self.managed_files[0]], manifest["restored_paths"])
+        self.assertEqual([], manifest["restore_failures"])
+
+    def test_user_edit_between_replaces_is_preserved_as_structural_conflict(self):
+        temporary, project = self.make_legacy_project()
+        self.addCleanup(temporary.cleanup)
+        user_file = project / "user-created-during-project.md"
+        user_file.write_bytes(b"owned by user\r\n")
+        before = {
+            relative: (project / relative).read_bytes()
+            for relative in self.managed_files
+        }
+        simulated_edit = b"\n<!-- cyz:test-hook:user-edit -->\n"
+
+        result = run_script(
+            MIGRATE,
+            project,
+            "--apply",
+            "--simulate-failure",
+            "user-edit-before-second-replace",
+        )
+
+        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        self.assertEqual(before[self.managed_files[0]], (project / self.managed_files[0]).read_bytes())
+        self.assertEqual(
+            before[self.managed_files[1]] + simulated_edit,
+            (project / self.managed_files[1]).read_bytes(),
+        )
+        self.assertEqual(b"owned by user\r\n", user_file.read_bytes())
+        self.assertNotIn("workflow_schema", read_state(project))
+        manifest = json.loads(self.manifests(project)[0].read_text(encoding="utf-8"))
+        self.assertEqual("structural_conflict", manifest["failure"]["kind"])
+        self.assertEqual([self.managed_files[0]], manifest["restored_paths"])
+        self.assertEqual([], manifest["restore_failures"])
+
+    def test_restore_attempts_every_changed_path_and_reports_each_failure(self):
+        spec = importlib.util.spec_from_file_location("cyz_migrate_project", MIGRATE)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        project = Path(temporary.name)
+        originals = {
+            relative: f"original:{relative}".encode("utf-8")
+            for relative in self.managed_files
+        }
+        for relative in self.managed_files:
+            (project / relative).write_bytes(f"candidate:{relative}".encode("utf-8"))
+        real_write_temp = module.write_temp
+
+        def fail_one_restore(path: Path, data: bytes) -> Path:
+            if path.name == self.managed_files[1]:
+                raise OSError("injected restore failure")
+            return real_write_temp(path, data)
+
+        with mock.patch.object(module, "write_temp", side_effect=fail_one_restore):
+            restored, failures = module.restore_changed(
+                project,
+                originals,
+                list(self.managed_files),
+            )
+
+        self.assertEqual([self.managed_files[0]], restored)
+        self.assertEqual(self.managed_files[1], failures[0]["path"])
+        self.assertIn("injected restore failure", failures[0]["error"])
+        self.assertEqual(originals[self.managed_files[0]], (project / self.managed_files[0]).read_bytes())
+        self.assertNotEqual(originals[self.managed_files[1]], (project / self.managed_files[1]).read_bytes())
 
 
 if __name__ == "__main__":
