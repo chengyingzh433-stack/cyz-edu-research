@@ -1,5 +1,6 @@
 {
   "id": "H01",
+  "criteriaDslVersion": 1,
   "title": "中文与英文分别调用指定 humanizer",
   "mapsTo": [
     "WF07"
@@ -19,13 +20,40 @@
     "记录输出与依赖 hash"
   ],
   "forbiddenBehavior": [
-    "交叉调用错误语言依赖",
-    "覆盖唯一基线"
+    {
+      "id": "H01.forbid.01",
+      "oracle": "不得发生：交叉调用错误语言依赖",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/H01/result.json"
+      ]
+    },
+    {
+      "id": "H01.forbid.02",
+      "oracle": "不得发生：覆盖唯一基线",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/H01/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "language_dependencies_match_text_language",
+      "id": "H01.pass.01",
       "oracle": "中文解析到 humanizer-zh，英文解析到 humanizer",
+      "condition": {
+        "path": "observed.languageDependenciesCorrect",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/H01/result.json"
       ]
@@ -33,6 +61,6 @@
   ],
   "evidence": [
     "results/H01/result.json",
-    "results/H01/artifacts/"
+    "results/H01/artifacts/index.json"
   ]
 }

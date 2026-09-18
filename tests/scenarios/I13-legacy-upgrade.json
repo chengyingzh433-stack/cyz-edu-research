@@ -1,5 +1,6 @@
 {
   "id": "I13",
+  "criteriaDslVersion": 1,
   "title": "旧项目升级保留内容且新项目模板完整",
   "mapsTo": [
     "WF05"
@@ -18,13 +19,40 @@
     "初始化并校验新项目"
   ],
   "forbiddenBehavior": [
-    "覆盖旧问题或原件",
-    "重复迁移改变字节"
+    {
+      "id": "I13.forbid.01",
+      "oracle": "不得发生：覆盖旧问题或原件",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I13/result.json"
+      ]
+    },
+    {
+      "id": "I13.forbid.02",
+      "oracle": "不得发生：重复迁移改变字节",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I13/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "migration.preserves_bytes_and_is_idempotent",
+      "id": "I13.pass.01",
       "oracle": "旧内容有原字节备份、二次迁移不变且新项目 schema=2",
+      "condition": {
+        "path": "observed.migrationAndInitializationPassed",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/I13/result.json"
       ]
@@ -32,7 +60,7 @@
   ],
   "evidence": [
     "results/I13/result.json",
-    "results/I13/artifacts/"
+    "results/I13/artifacts/index.json"
   ],
   "sourceScenario": 13
 }

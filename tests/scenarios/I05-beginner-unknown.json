@@ -1,5 +1,6 @@
 {
   "id": "I05",
+  "criteriaDslVersion": 1,
   "title": "初学者回答不知道时获得具体支持",
   "mapsTo": [
     "WF03"
@@ -18,13 +19,40 @@
     "保留用户选择权"
   ],
   "forbiddenBehavior": [
-    "替用户作重大决定",
-    "连续抛出术语问卷"
+    {
+      "id": "I05.forbid.01",
+      "oracle": "不得发生：替用户作重大决定",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I05/result.json"
+      ]
+    },
+    {
+      "id": "I05.forbid.02",
+      "oracle": "不得发生：连续抛出术语问卷",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I05/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "decision.source != ai_assumed_user_answer",
+      "id": "I05.pass.01",
       "oracle": "没有把 AI 推荐写成用户确认，且交互给出依据与选项",
+      "condition": {
+        "path": "observed.beginnerSupportPreservedChoice",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/I05/result.json"
       ]
@@ -32,7 +60,7 @@
   ],
   "evidence": [
     "results/I05/result.json",
-    "results/I05/artifacts/"
+    "results/I05/artifacts/index.json"
   ],
   "sourceScenario": 5
 }

@@ -1,5 +1,6 @@
 {
   "id": "I08",
+  "criteriaDslVersion": 1,
   "title": "仅摘要或离线时保持证据边界",
   "mapsTo": [
     "WF04"
@@ -18,13 +19,40 @@
     "登记待核验项"
   ],
   "forbiddenBehavior": [
-    "捏造全文证据",
-    "宣称已证明研究空白"
+    {
+      "id": "I08.forbid.01",
+      "oracle": "不得发生：捏造全文证据",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I08/result.json"
+      ]
+    },
+    {
+      "id": "I08.forbid.02",
+      "oracle": "不得发生：宣称已证明研究空白",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I08/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "claims.never_exceed_access_level",
+      "id": "I08.pass.01",
       "oracle": "所有主张不超出摘要/元数据范围，关键未知时不 ready",
+      "condition": {
+        "path": "observed.accessBoundaryRespected",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/I08/result.json"
       ]
@@ -32,7 +60,7 @@
   ],
   "evidence": [
     "results/I08/result.json",
-    "results/I08/artifacts/"
+    "results/I08/artifacts/index.json"
   ],
   "sourceScenario": 8
 }

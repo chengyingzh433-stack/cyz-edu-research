@@ -1,5 +1,6 @@
 {
   "id": "M06",
+  "criteriaDslVersion": 1,
   "title": "转换流程保持原件字节不变",
   "mapsTo": [
     "WF09"
@@ -18,12 +19,28 @@
     "转换后重算 hash"
   ],
   "forbiddenBehavior": [
-    "修改、重命名或删除原件"
+    {
+      "id": "M06.forbid.01",
+      "oracle": "不得发生：修改、重命名或删除原件",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/M06/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "source.sha256_before == source.sha256_after",
+      "id": "M06.pass.01",
       "oracle": "原件转换前后 SHA256 完全一致",
+      "condition": {
+        "path": "observed.originalHashUnchanged",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/M06/result.json"
       ]
@@ -31,6 +48,6 @@
   ],
   "evidence": [
     "results/M06/result.json",
-    "results/M06/artifacts/"
+    "results/M06/artifacts/index.json"
   ]
 }

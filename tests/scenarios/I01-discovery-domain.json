@@ -1,5 +1,6 @@
 {
   "id": "I01",
+  "criteriaDslVersion": 1,
   "title": "仅有宽泛领域时进入文献优先发现",
   "mapsTo": [
     "WF01"
@@ -18,13 +19,40 @@
     "生成有依据的候选卡并请求方向选择"
   ],
   "forbiddenBehavior": [
-    "强迫用户先陈述课堂困惑",
-    "把未检出写成研究空白"
+    {
+      "id": "I01.forbid.01",
+      "oracle": "不得发生：强迫用户先陈述课堂困惑",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I01/result.json"
+      ]
+    },
+    {
+      "id": "I01.forbid.02",
+      "oracle": "不得发生：把未检出写成研究空白",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I01/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "idea.mode == discovery",
+      "id": "I01.pass.01",
       "oracle": "状态为 discovery；候选均含依据、未知与推荐理由",
+      "condition": {
+        "path": "observed.discoveryCandidateBoundaryPassed",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/I01/result.json"
       ]
@@ -32,7 +60,7 @@
   ],
   "evidence": [
     "results/I01/result.json",
-    "results/I01/artifacts/"
+    "results/I01/artifacts/index.json"
   ],
   "sourceScenario": 1
 }

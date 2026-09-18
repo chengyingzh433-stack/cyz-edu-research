@@ -1,5 +1,6 @@
 {
   "id": "I02",
+  "criteriaDslVersion": 1,
   "title": "模糊领域加种子论文时先盘点复用再补覆盖",
   "mapsTo": [
     "WF01"
@@ -18,13 +19,40 @@
     "仅补查未覆盖方向"
   ],
   "forbiddenBehavior": [
-    "重复询问文献已有信息",
-    "机械凑候选数量"
+    {
+      "id": "I02.forbid.01",
+      "oracle": "不得发生：重复询问文献已有信息",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I02/result.json"
+      ]
+    },
+    {
+      "id": "I02.forbid.02",
+      "oracle": "不得发生：机械凑候选数量",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I02/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "search.reuses_seed_materials_and_bounds_supplement",
+      "id": "I02.pass.01",
       "oracle": "检索记录引用既有 paper_id 并说明补查范围与停止条件",
+      "condition": {
+        "path": "observed.seedReuseAndCoverageBoundPassed",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/I02/result.json"
       ]
@@ -32,7 +60,7 @@
   ],
   "evidence": [
     "results/I02/result.json",
-    "results/I02/artifacts/"
+    "results/I02/artifacts/index.json"
   ],
   "sourceScenario": 2
 }

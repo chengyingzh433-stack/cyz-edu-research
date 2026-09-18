@@ -1,5 +1,6 @@
 {
   "id": "I07",
+  "criteriaDslVersion": 1,
   "title": "高度相似研究触发缩小改变或淘汰",
   "mapsTo": [
     "WF03"
@@ -18,13 +19,40 @@
     "保留历史与理由"
   ],
   "forbiddenBehavior": [
-    "只改标题继续推荐",
-    "删除淘汰历史"
+    {
+      "id": "I07.forbid.01",
+      "oracle": "不得发生：只改标题继续推荐",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I07/result.json"
+      ]
+    },
+    {
+      "id": "I07.forbid.02",
+      "oracle": "不得发生：删除淘汰历史",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I07/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "candidate.revision_or_elimination_is_reasoned",
+      "id": "I07.pass.01",
       "oracle": "修改或淘汰决定引用相近研究证据",
+      "condition": {
+        "path": "observed.similarityDecisionReasoned",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/I07/result.json"
       ]
@@ -32,7 +60,7 @@
   ],
   "evidence": [
     "results/I07/result.json",
-    "results/I07/artifacts/"
+    "results/I07/artifacts/index.json"
   ],
   "sourceScenario": 7
 }

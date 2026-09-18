@@ -1,5 +1,6 @@
 {
   "id": "M03",
+  "criteriaDslVersion": 1,
   "title": "错误源页图或 cache key 被拒绝",
   "mapsTo": [
     "WF10"
@@ -18,13 +19,40 @@
     "记录拒绝原因"
   ],
   "forbiddenBehavior": [
-    "接受部分缓存",
-    "把 running 当完成"
+    {
+      "id": "M03.forbid.01",
+      "oracle": "不得发生：接受部分缓存",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/M03/result.json"
+      ]
+    },
+    {
+      "id": "M03.forbid.02",
+      "oracle": "不得发生：把 running 当完成",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/M03/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "all_invalid_cache_variants_rejected",
+      "id": "M03.pass.01",
       "oracle": "每个损坏变体均被拒绝且原因可区分",
+      "condition": {
+        "path": "observed.invalidCachesRejected",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/M03/result.json"
       ]
@@ -32,6 +60,6 @@
   ],
   "evidence": [
     "results/M03/result.json",
-    "results/M03/artifacts/"
+    "results/M03/artifacts/index.json"
   ]
 }

@@ -1,5 +1,6 @@
 {
   "id": "M04",
+  "criteriaDslVersion": 1,
   "title": "复用任务保留完整 lineage",
   "mapsTo": [
     "WF10"
@@ -18,13 +19,40 @@
     "核对参数"
   ],
   "forbiddenBehavior": [
-    "仅写 reused 而无源 task ID",
-    "跨 source hash 复用"
+    {
+      "id": "M04.forbid.01",
+      "oracle": "不得发生：仅写 reused 而无源 task ID",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/M04/result.json"
+      ]
+    },
+    {
+      "id": "M04.forbid.02",
+      "oracle": "不得发生：跨 source hash 复用",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/M04/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "lineage.resolves_to_original_source",
+      "id": "M04.pass.01",
       "oracle": "可追溯到完成任务、原文件 hash 和参数",
+      "condition": {
+        "path": "observed.lineageResolved",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/M04/result.json"
       ]
@@ -32,6 +60,6 @@
   ],
   "evidence": [
     "results/M04/result.json",
-    "results/M04/artifacts/"
+    "results/M04/artifacts/index.json"
   ]
 }

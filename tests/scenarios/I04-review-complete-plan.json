@@ -1,5 +1,6 @@
 {
   "id": "I04",
+  "criteriaDslVersion": 1,
   "title": "完整方案先审查关键缺口与替代解释",
   "mapsTo": [
     "WF02",
@@ -19,13 +20,40 @@
     "形成继续或修改决定"
   ],
   "forbiddenBehavior": [
-    "跳过审查直接写论文",
-    "把格式完整等同研究成立"
+    {
+      "id": "I04.forbid.01",
+      "oracle": "不得发生：跳过审查直接写论文",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I04/result.json"
+      ]
+    },
+    {
+      "id": "I04.forbid.02",
+      "oracle": "不得发生：把格式完整等同研究成立",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I04/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "review.records_counter_explanations",
+      "id": "I04.pass.01",
       "oracle": "选题卡记录替代解释与失败条件",
+      "condition": {
+        "path": "observed.counterExplanationReviewPassed",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/I04/result.json"
       ]
@@ -33,7 +61,7 @@
   ],
   "evidence": [
     "results/I04/result.json",
-    "results/I04/artifacts/"
+    "results/I04/artifacts/index.json"
   ],
   "sourceScenario": 4
 }

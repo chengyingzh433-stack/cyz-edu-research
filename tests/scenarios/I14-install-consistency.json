@@ -1,5 +1,6 @@
 {
   "id": "I14",
+  "criteriaDslVersion": 1,
   "title": "双安装一致且内部引用与旧流程有效",
   "mapsTo": [
     "WF12"
@@ -18,13 +19,40 @@
     "回归 PDF 与语言入口"
   ],
   "forbiddenBehavior": [
-    "纳入 pycache 比较",
-    "忽略断链或静默替代依赖"
+    {
+      "id": "I14.forbid.01",
+      "oracle": "不得发生：纳入 pycache 比较",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I14/result.json"
+      ]
+    },
+    {
+      "id": "I14.forbid.02",
+      "oracle": "不得发生：忽略断链或静默替代依赖",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I14/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "install.controlled_trees_equal",
+      "id": "I14.pass.01",
       "oracle": "两处受控树一致，链接与 PDF/语言回归通过",
+      "condition": {
+        "path": "observed.installAndRegressionPassed",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/I14/result.json"
       ]
@@ -32,7 +60,7 @@
   ],
   "evidence": [
     "results/I14/result.json",
-    "results/I14/artifacts/"
+    "results/I14/artifacts/index.json"
   ],
   "sourceScenario": 14
 }

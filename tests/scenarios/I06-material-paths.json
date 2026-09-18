@@ -1,5 +1,6 @@
 {
   "id": "I06",
+  "criteriaDslVersion": 1,
   "title": "混合材料路径明确新增课堂数据需求",
   "mapsTo": [
     "WF03"
@@ -18,13 +19,40 @@
     "更新可行性"
   ],
   "forbiddenBehavior": [
-    "把计划数据写成已有",
-    "隐藏课堂收集负担"
+    {
+      "id": "I06.forbid.01",
+      "oracle": "不得发生：把计划数据写成已有",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I06/result.json"
+      ]
+    },
+    {
+      "id": "I06.forbid.02",
+      "oracle": "不得发生：隐藏课堂收集负担",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I06/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "candidate.materials_are_partitioned",
+      "id": "I06.pass.01",
       "oracle": "材料路径清楚区分已有、可取得和需新增",
+      "condition": {
+        "path": "observed.materialPathsPartitioned",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/I06/result.json"
       ]
@@ -32,7 +60,7 @@
   ],
   "evidence": [
     "results/I06/result.json",
-    "results/I06/artifacts/"
+    "results/I06/artifacts/index.json"
   ],
   "sourceScenario": 6
 }

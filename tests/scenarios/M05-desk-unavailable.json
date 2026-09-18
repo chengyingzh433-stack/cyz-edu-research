@@ -1,5 +1,6 @@
 {
   "id": "M05",
+  "criteriaDslVersion": 1,
   "title": "缺 Desk 或无 OCR 时本地安全降级",
   "mapsTo": [
     "WF11"
@@ -19,14 +20,52 @@
     "模拟中断恢复"
   ],
   "forbiddenBehavior": [
-    "自动上传云端",
-    "捏造文字",
-    "中断后重复提交"
+    {
+      "id": "M05.forbid.01",
+      "oracle": "不得发生：自动上传云端",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/M05/result.json"
+      ]
+    },
+    {
+      "id": "M05.forbid.02",
+      "oracle": "不得发生：捏造文字",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/M05/result.json"
+      ]
+    },
+    {
+      "id": "M05.forbid.03",
+      "oracle": "不得发生：中断后重复提交",
+      "condition": {
+        "path": "observed.forbidden03Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/M05/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "fallback_is_local_and_submission_count_one",
+      "id": "M05.pass.01",
       "oracle": "无云上传、未识别页明确且恢复后只提交一次",
+      "condition": {
+        "path": "observed.localFallbackPassed",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/M05/result.json"
       ]
@@ -34,6 +73,6 @@
   ],
   "evidence": [
     "results/M05/result.json",
-    "results/M05/artifacts/"
+    "results/M05/artifacts/index.json"
   ]
 }

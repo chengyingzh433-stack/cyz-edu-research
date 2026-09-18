@@ -1,5 +1,6 @@
 {
   "id": "I11",
+  "criteriaDslVersion": 1,
   "title": "新证据否定原选择时回退并保留历史",
   "mapsTo": [
     "WF05",
@@ -19,13 +20,40 @@
     "回退决定并标记下游复核"
   ],
   "forbiddenBehavior": [
-    "删除旧决定",
-    "保持 ready 且不标记下游"
+    {
+      "id": "I11.forbid.01",
+      "oracle": "不得发生：删除旧决定",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I11/result.json"
+      ]
+    },
+    {
+      "id": "I11.forbid.02",
+      "oracle": "不得发生：保持 ready 且不标记下游",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I11/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "revision.invalidates_only_affected_decisions",
+      "id": "I11.pass.01",
       "oracle": "相关决定失效、历史保留且下游成果需复核",
+      "condition": {
+        "path": "observed.evidenceReversalHandled",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/I11/result.json"
       ]
@@ -33,7 +61,7 @@
   ],
   "evidence": [
     "results/I11/result.json",
-    "results/I11/artifacts/"
+    "results/I11/artifacts/index.json"
   ],
   "sourceScenario": 11
 }

@@ -36,3 +36,11 @@
 - `live`：必须保存真实运行时输入输出、时间、版本和人工审阅依据。
 - 每个场景必须记录 actual result、passed/failed/blocked、执行时间、commit、环境、退出码或界面状态及证据路径。
 - I01–I14 与原 14 个场景保持一对一编号；H/M 场景补充语言与 MinerU 集成边界。
+
+## Schema 与判定 DSL
+
+- 每个 fixture 都由 `scenario-contract.schema.json` 验证。仓库内 `tests/scenarios/schema_validator.py` 实现本 schema 使用到的 Draft 2020-12 子集，不依赖环境中的第三方包；未知类型、外部 `$ref` 和未声明字段一律失败。
+- `criteriaDslVersion` 当前固定为 `1`。每条通过条件和禁止行为都有稳定 ID、人工可读 oracle、结构化 `condition` 和已声明的证据路径。
+- condition 仅允许点分字段路径，以及 `eq`、`not_eq`、`gte`、`lte`、`exists`、`unchanged` 运算符。解释器使用封闭分支，不执行 `eval`、表达式字符串或动态代码。
+- 所有证据路径必须是当前场景目录下的 POSIX 相对路径：`results/<scenario-id>/...`。绝对路径、盘符、UNC、反斜杠、`..`、跨场景路径和未在顶层声明的 criterion 证据都会被拒绝。
+- 复现命令：`py -3.11 -m unittest tests.test_workflow_contract -v`。

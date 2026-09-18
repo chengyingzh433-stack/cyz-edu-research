@@ -1,5 +1,6 @@
 {
   "id": "I12",
+  "criteriaDslVersion": 1,
   "title": "选题简报交接不虚报 S2-S5",
   "mapsTo": [
     "WF05",
@@ -19,13 +20,40 @@
     "比较阶段门检前后状态"
   ],
   "forbiddenBehavior": [
-    "把 ready 自动传播为 S2-S5 passed",
-    "复制全部 PDF 正文"
+    {
+      "id": "I12.forbid.01",
+      "oracle": "不得发生：把 ready 自动传播为 S2-S5 passed",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I12/result.json"
+      ]
+    },
+    {
+      "id": "I12.forbid.02",
+      "oracle": "不得发生：复制全部 PDF 正文",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I12/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "readyDoesNotPassStages == true",
+      "id": "I12.pass.01",
       "oracle": "handoff 后 S2-S5 仍保持实际状态",
+      "condition": {
+        "path": "observed.readyDidNotPassStages",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/I12/result.json"
       ]
@@ -33,7 +61,7 @@
   ],
   "evidence": [
     "results/I12/result.json",
-    "results/I12/artifacts/"
+    "results/I12/artifacts/index.json"
   ],
   "sourceScenario": 12
 }

@@ -1,5 +1,6 @@
 {
   "id": "M02",
+  "criteriaDslVersion": 1,
   "title": "同源同参数复用且不重复提交",
   "mapsTo": [
     "WF10"
@@ -18,13 +19,40 @@
     "比较提交计数"
   ],
   "forbiddenBehavior": [
-    "创建第二任务",
-    "丢失源任务追溯"
+    {
+      "id": "M02.forbid.01",
+      "oracle": "不得发生：创建第二任务",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/M02/result.json"
+      ]
+    },
+    {
+      "id": "M02.forbid.02",
+      "oracle": "不得发生：丢失源任务追溯",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/M02/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "submission_count.delta == 0 and lineage_present",
+      "id": "M02.pass.01",
       "oracle": "没有新增提交且复用 manifest 指向源 task ID",
+      "condition": {
+        "path": "observed.cacheReusePassed",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/M02/result.json"
       ]
@@ -32,6 +60,6 @@
   ],
   "evidence": [
     "results/M02/result.json",
-    "results/M02/artifacts/"
+    "results/M02/artifacts/index.json"
   ]
 }

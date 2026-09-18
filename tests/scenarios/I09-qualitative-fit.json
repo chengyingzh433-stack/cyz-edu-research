@@ -1,5 +1,6 @@
 {
   "id": "I09",
+  "criteriaDslVersion": 1,
   "title": "定性教材或教学设计采用适配证据要求",
   "mapsTo": [
     "WF04"
@@ -18,13 +19,40 @@
     "区分设计依据与效果证据"
   ],
   "forbiddenBehavior": [
-    "强制量化假设或消融",
-    "用满意度替代学习成效"
+    {
+      "id": "I09.forbid.01",
+      "oracle": "不得发生：强制量化假设或消融",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I09/result.json"
+      ]
+    },
+    {
+      "id": "I09.forbid.02",
+      "oracle": "不得发生：用满意度替代学习成效",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I09/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "design.evidence_path_matches_question_type",
+      "id": "I09.pass.01",
       "oracle": "证据路线与问题类型一致并注明不适用项",
+      "condition": {
+        "path": "observed.evidencePathFitsQuestion",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/I09/result.json"
       ]
@@ -32,7 +60,7 @@
   ],
   "evidence": [
     "results/I09/result.json",
-    "results/I09/artifacts/"
+    "results/I09/artifacts/index.json"
   ],
   "sourceScenario": 9
 }

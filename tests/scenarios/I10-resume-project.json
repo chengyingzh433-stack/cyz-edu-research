@@ -1,5 +1,6 @@
 {
   "id": "I10",
+  "criteriaDslVersion": 1,
   "title": "暂停后恢复当前决定且复用有效缓存",
   "mapsTo": [
     "WF05"
@@ -18,13 +19,40 @@
     "核对缓存未重复转换"
   ],
   "forbiddenBehavior": [
-    "重置决定",
-    "重转 hash 相同的缓存"
+    {
+      "id": "I10.forbid.01",
+      "oracle": "不得发生：重置决定",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I10/result.json"
+      ]
+    },
+    {
+      "id": "I10.forbid.02",
+      "oracle": "不得发生：重转 hash 相同的缓存",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I10/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "resume.preserved_decisions_and_cache_hashes",
+      "id": "I10.pass.01",
       "oracle": "恢复前后决定与有效缓存 hash 一致",
+      "condition": {
+        "path": "observed.resumePreservedState",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/I10/result.json"
       ]
@@ -32,7 +60,7 @@
   ],
   "evidence": [
     "results/I10/result.json",
-    "results/I10/artifacts/"
+    "results/I10/artifacts/index.json"
   ],
   "sourceScenario": 10
 }

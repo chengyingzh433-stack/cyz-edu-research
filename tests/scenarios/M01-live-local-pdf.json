@@ -1,5 +1,6 @@
 {
   "id": "M01",
+  "criteriaDslVersion": 1,
   "title": "两篇真实 PDF 经本地 MinerU 解析并抽查",
   "mapsTo": [
     "WF09"
@@ -19,13 +20,40 @@
     "保存 task ID"
   ],
   "forbiddenBehavior": [
-    "上传云端",
-    "用合成样本替代真实 PDF"
+    {
+      "id": "M01.forbid.01",
+      "oracle": "不得发生：上传云端",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/M01/result.json"
+      ]
+    },
+    {
+      "id": "M01.forbid.02",
+      "oracle": "不得发生：用合成样本替代真实 PDF",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/M01/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "local_completed_tasks >= 2 and manual_page_review.passed",
+      "id": "M01.pass.01",
       "oracle": "两篇 PDF 有本地 task ID，页级抽查覆盖实际内容",
+      "condition": {
+        "path": "observed.liveLocalPdfReviewPassed",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/M01/result.json"
       ]
@@ -33,6 +61,6 @@
   ],
   "evidence": [
     "results/M01/result.json",
-    "results/M01/artifacts/"
+    "results/M01/artifacts/index.json"
   ]
 }

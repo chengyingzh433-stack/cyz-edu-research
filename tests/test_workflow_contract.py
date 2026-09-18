@@ -1,4 +1,6 @@
+import copy
 import json
+import re
 import unittest
 from pathlib import Path
 from typing import Any
@@ -44,6 +46,10 @@ REQUIRED_ENTITY_FIELDS = {
     "event": {"eventId", "eventType", "actor", "occurredAt", "payload"},
     "recoveryPoint": {"recoveryPointId", "createdAt", "reason", "manifestPath", "fileHashes", "status"},
 }
+WF_IDS = {f"WF{i:02d}" for i in range(1, 13)}
+EVIDENCE_PATH = re.compile(
+    r"^results/[IHM][0-9]{2}/(?:[A-Za-z0-9._-]+/)*[A-Za-z0-9._-]+$"
+)
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -62,6 +68,10 @@ class WorkflowContractTests(unittest.TestCase):
     def test_contract_separates_file_contract_from_project_schema(self):
         data = load_json(CONTRACT_PATH)
 
+        self.assertEqual(
+            {"contractVersion", "projectSchemaVersion", "readyDoesNotPassStages", "stages", "ideaEnums", "entities", "allowedTransitions", "invariants"},
+            set(data),
+        )
         self.assertEqual(1, data["contractVersion"])
         self.assertEqual(2, data["projectSchemaVersion"])
         self.assertNotEqual(data["contractVersion"], data["projectSchemaVersion"])
@@ -71,8 +81,12 @@ class WorkflowContractTests(unittest.TestCase):
         )
         for stage in data["stages"]:
             with self.subTest(stage=stage["id"]):
+                self.assertEqual({"id", "name", "gate"}, set(stage))
                 self.assertTrue(stage["name"])
                 self.assertIsInstance(stage["gate"], dict)
+                self.assertEqual(
+                    {"passCriteria", "evidenceRequired"}, set(stage["gate"])
+                )
                 self.assertTrue(stage["gate"]["passCriteria"])
                 self.assertTrue(stage["gate"]["evidenceRequired"])
 
@@ -88,10 +102,19 @@ class WorkflowContractTests(unittest.TestCase):
             ["not_started", "exploring", "refining", "needs_verification", "ready", "blocked"],
             data["ideaEnums"]["ideaStatus"],
         )
+        self.assertEqual(
+            ["pending", "running", "completed", "failed", "blocked", "cancelled"],
+            data["ideaEnums"]["taskStatus"],
+        )
+        self.assertEqual(
+            {"entryMode", "ideaMode", "ideaMaturity", "ideaStatus", "gateStatus", "taskStatus", "provenance"},
+            set(data["ideaEnums"]),
+        )
         self.assertEqual(set(REQUIRED_ENTITY_FIELDS), set(data["entities"]))
         for entity, required in REQUIRED_ENTITY_FIELDS.items():
             with self.subTest(entity=entity):
-                self.assertTrue(required <= set(data["entities"][entity]["required"]))
+                self.assertEqual({"required"}, set(data["entities"][entity]))
+                self.assertEqual(required, set(data["entities"][entity]["required"]))
 
         transitions = data["allowedTransitions"]["ideaStatus"]
         self.assertIn("exploring", transitions["not_started"])
@@ -101,22 +124,160 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertIn("refining", transitions["ready"])
         self.assertTrue(data["readyDoesNotPassStages"])
 
+        enum_by_machine = {
+            "ideaStatus": set(data["ideaEnums"]["ideaStatus"]),
+            "gateStatus": set(data["ideaEnums"]["gateStatus"]),
+            "taskStatus": set(data["ideaEnums"]["taskStatus"]),
+        }
+        self.assertEqual(set(enum_by_machine), set(data["allowedTransitions"]))
+        for machine, values in enum_by_machine.items():
+            with self.subTest(machine=machine):
+                graph = data["allowedTransitions"][machine]
+                self.assertEqual(values, set(graph))
+                self.assertTrue(
+                    all(set(destinations) <= values for destinations in graph.values())
+                )
+
     def test_scenario_schema_requires_executable_oracles(self):
         schema = load_json(SCHEMA_PATH)
 
         self.assertEqual("https://json-schema.org/draft/2020-12/schema", schema["$schema"])
         self.assertEqual(
-            {"id", "title", "mapsTo", "executionMode", "preconditions", "inputs", "actor", "steps", "forbiddenBehavior", "passCriteria", "evidence"},
+            {"id", "title", "criteriaDslVersion", "mapsTo", "executionMode", "preconditions", "inputs", "actor", "steps", "forbiddenBehavior", "passCriteria", "evidence"},
             set(schema["required"]),
         )
+        self.assertEqual([1], schema["properties"]["criteriaDslVersion"]["enum"])
         self.assertEqual(
             ["deterministic", "scripted", "live"],
             schema["properties"]["executionMode"]["enum"],
         )
-        predicate = schema["$defs"]["predicate"]
+        self.assertEqual(sorted(WF_IDS), sorted(schema["properties"]["mapsTo"]["items"]["enum"]))
+        criterion = schema["$defs"]["criterion"]
         self.assertEqual(
-            {"predicate", "oracle", "evidenceRequired"}, set(predicate["required"])
+            {"id", "oracle", "condition", "evidenceRequired"},
+            set(criterion["required"]),
         )
+        self.assertEqual(
+            ["eq", "not_eq", "gte", "lte", "exists", "unchanged"],
+            schema["$defs"]["condition"]["properties"]["operator"]["enum"],
+        )
+
+    def test_schema_is_applied_to_every_fixture(self):
+        from tests.scenarios.schema_validator import validate_scenario
+
+        schema = load_json(SCHEMA_PATH)
+        for scenario_id, item in load_scenarios().items():
+            with self.subTest(scenario=scenario_id):
+                validate_scenario(item, schema)
+
+    def test_schema_validator_rejects_negative_mutations(self):
+        from tests.scenarios.schema_validator import SchemaValidationError, validate_scenario
+
+        schema = load_json(SCHEMA_PATH)
+        original = load_scenarios()["I01"]
+        mutations = []
+
+        missing_actor = copy.deepcopy(original)
+        del missing_actor["actor"]
+        mutations.append(("missing required field", missing_actor))
+
+        invalid_mode = copy.deepcopy(original)
+        invalid_mode["executionMode"] = "manual"
+        mutations.append(("invalid enum", invalid_mode))
+
+        extra_field = copy.deepcopy(original)
+        extra_field["undeclared"] = True
+        mutations.append(("additional property", extra_field))
+
+        invalid_operator = copy.deepcopy(original)
+        invalid_operator["passCriteria"][0]["condition"]["operator"] = "eval"
+        mutations.append(("unsafe operator", invalid_operator))
+
+        invalid_dsl_version = copy.deepcopy(original)
+        invalid_dsl_version["criteriaDslVersion"] = 2
+        mutations.append(("unsupported DSL version", invalid_dsl_version))
+
+        invalid_wf = copy.deepcopy(original)
+        invalid_wf["mapsTo"] = ["WF13"]
+        mutations.append(("out-of-contract WF mapping", invalid_wf))
+
+        invalid_numeric_type = copy.deepcopy(original)
+        invalid_numeric_type["passCriteria"][0]["condition"].update(
+            {"operator": "gte", "expected": "two"}
+        )
+        mutations.append(("numeric operator with string expected", invalid_numeric_type))
+
+        invalid_boolean_type = copy.deepcopy(original)
+        invalid_boolean_type["passCriteria"][0]["condition"].update(
+            {"operator": "exists", "expected": "yes"}
+        )
+        mutations.append(("boolean operator with string expected", invalid_boolean_type))
+
+        prose_pass = copy.deepcopy(original)
+        prose_pass["passCriteria"][0] = "looks good"
+        mutations.append(("prose-only pass rule", prose_pass))
+
+        prose_forbidden = copy.deepcopy(original)
+        prose_forbidden["forbiddenBehavior"][0] = "do not hallucinate"
+        mutations.append(("prose-only forbidden rule", prose_forbidden))
+
+        for unsafe_path in (
+            "/tmp/evidence.json",
+            "C:/evidence.json",
+            "//server/share/evidence.json",
+            "results/I01/../evidence.json",
+            "results/I02/wrong-scenario.json",
+        ):
+            unsafe_evidence = copy.deepcopy(original)
+            unsafe_evidence["evidence"][0] = unsafe_path
+            mutations.append((f"unsafe evidence path {unsafe_path}", unsafe_evidence))
+
+        undeclared_evidence = copy.deepcopy(original)
+        undeclared_evidence["passCriteria"][0]["evidenceRequired"] = [
+            "results/I01/not-declared.json"
+        ]
+        mutations.append(("criterion evidence not declared at top level", undeclared_evidence))
+
+        for label, mutation in mutations:
+            with self.subTest(mutation=label):
+                with self.assertRaises(SchemaValidationError):
+                    validate_scenario(mutation, schema)
+
+    def test_condition_dsl_has_a_safe_non_eval_evaluator(self):
+        from tests.scenarios.schema_validator import (
+            SchemaValidationError,
+            evaluate_condition,
+        )
+
+        observed = {
+            "checks": {"passed": True, "count": 2},
+            "hashes": {"source": {"before": "abc", "after": "abc"}},
+        }
+        self.assertTrue(
+            evaluate_condition(
+                observed, {"path": "checks.passed", "operator": "eq", "expected": True}
+            )
+        )
+        self.assertTrue(
+            evaluate_condition(
+                observed, {"path": "checks.count", "operator": "gte", "expected": 2}
+            )
+        )
+        self.assertTrue(
+            evaluate_condition(
+                observed,
+                {"path": "hashes.source", "operator": "unchanged", "expected": True},
+            )
+        )
+        self.assertTrue(
+            evaluate_condition(
+                observed, {"path": "checks.missing", "operator": "exists", "expected": False}
+            )
+        )
+        with self.assertRaises(SchemaValidationError):
+            evaluate_condition(
+                observed, {"path": "checks.passed", "operator": "eval", "expected": True}
+            )
 
     def test_every_required_scenario_has_an_oracle(self):
         self.assertEqual(
@@ -129,6 +290,7 @@ class WorkflowContractTests(unittest.TestCase):
         for scenario_id, item in scenarios.items():
             with self.subTest(scenario=scenario_id):
                 self.assertEqual(scenario_id, item["id"])
+                self.assertEqual(1, item["criteriaDslVersion"])
                 self.assertTrue(item["title"])
                 self.assertTrue(item["mapsTo"])
                 self.assertIn(item["executionMode"], {"deterministic", "scripted", "live"})
@@ -139,15 +301,47 @@ class WorkflowContractTests(unittest.TestCase):
                 self.assertTrue(item["forbiddenBehavior"])
                 self.assertTrue(item["passCriteria"])
                 self.assertTrue(item["evidence"])
-                self.assertTrue(
-                    all(
-                        {"predicate", "oracle", "evidenceRequired"} <= criterion.keys()
-                        and criterion["predicate"]
-                        and criterion["oracle"]
-                        and criterion["evidenceRequired"]
-                        for criterion in item["passCriteria"]
-                    )
-                )
+                self.assertTrue(set(item["mapsTo"]) <= WF_IDS)
+
+    def test_every_oracle_and_forbidden_rule_is_executable(self):
+        seen_ids = set()
+        for scenario_id, item in load_scenarios().items():
+            declared_evidence = set(item["evidence"])
+            for group_name in ("passCriteria", "forbiddenBehavior"):
+                for criterion in item[group_name]:
+                    with self.subTest(scenario=scenario_id, criterion=criterion):
+                        self.assertIsInstance(criterion, dict)
+                        self.assertEqual(
+                            {"id", "oracle", "condition", "evidenceRequired"},
+                            set(criterion),
+                        )
+                        self.assertRegex(
+                            criterion["id"],
+                            rf"^{scenario_id}\.(?:pass|forbid)\.[0-9]{{2}}$",
+                        )
+                        self.assertNotIn(criterion["id"], seen_ids)
+                        seen_ids.add(criterion["id"])
+                        self.assertTrue(criterion["oracle"])
+                        self.assertEqual(
+                            {"path", "operator", "expected"},
+                            set(criterion["condition"]),
+                        )
+                        self.assertTrue(
+                            set(criterion["evidenceRequired"]) <= declared_evidence
+                        )
+
+    def test_evidence_paths_are_scenario_local_and_safe(self):
+        for scenario_id, item in load_scenarios().items():
+            all_paths = list(item["evidence"])
+            for group_name in ("passCriteria", "forbiddenBehavior"):
+                for criterion in item[group_name]:
+                    all_paths.extend(criterion["evidenceRequired"])
+            for evidence_path in all_paths:
+                with self.subTest(scenario=scenario_id, path=evidence_path):
+                    self.assertRegex(evidence_path, EVIDENCE_PATH)
+                    self.assertTrue(evidence_path.startswith(f"results/{scenario_id}/"))
+                    self.assertNotIn("..", evidence_path.split("/"))
+                    self.assertNotIn("\\", evidence_path)
 
     def test_original_idea_scenarios_keep_one_to_one_numbering(self):
         scenarios = load_scenarios()

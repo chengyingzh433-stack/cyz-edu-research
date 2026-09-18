@@ -149,6 +149,14 @@
       "failed",
       "blocked"
     ],
+    "taskStatus": [
+      "pending",
+      "running",
+      "completed",
+      "failed",
+      "blocked",
+      "cancelled"
+    ],
     "provenance": [
       "user_statement",
       "verified_source",

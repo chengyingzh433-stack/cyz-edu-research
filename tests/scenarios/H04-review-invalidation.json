@@ -1,5 +1,6 @@
 {
   "id": "H04",
+  "criteriaDslVersion": 1,
   "title": "终稿变更使旧语言审阅失效",
   "mapsTo": [
     "WF08"
@@ -18,12 +19,28 @@
     "标记旧报告失效"
   ],
   "forbiddenBehavior": [
-    "沿用旧通过状态导出"
+    {
+      "id": "H04.forbid.01",
+      "oracle": "不得发生：沿用旧通过状态导出",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/H04/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "review.valid_only_when_hash_matches",
+      "id": "H04.pass.01",
       "oracle": "hash 不同后状态回到处理中或需复核",
+      "condition": {
+        "path": "observed.changedDraftInvalidatedReview",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/H04/result.json"
       ]
@@ -31,6 +48,6 @@
   ],
   "evidence": [
     "results/H04/result.json",
-    "results/H04/artifacts/"
+    "results/H04/artifacts/index.json"
   ]
 }

@@ -1,5 +1,6 @@
 {
   "id": "I03",
+  "criteriaDslVersion": 1,
   "title": "模糊 idea 直接澄清并定向定位",
   "mapsTo": [
     "WF02",
@@ -19,13 +20,40 @@
     "定向寻找相近研究"
   ],
   "forbiddenBehavior": [
-    "重扫整个学科",
-    "未经确认直接进入写作"
+    {
+      "id": "I03.forbid.01",
+      "oracle": "不得发生：重扫整个学科",
+      "condition": {
+        "path": "observed.forbidden01Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I03/result.json"
+      ]
+    },
+    {
+      "id": "I03.forbid.02",
+      "oracle": "不得发生：未经确认直接进入写作",
+      "condition": {
+        "path": "observed.forbidden02Occurred",
+        "operator": "eq",
+        "expected": false
+      },
+      "evidenceRequired": [
+        "results/I03/result.json"
+      ]
+    }
   ],
   "passCriteria": [
     {
-      "predicate": "idea.mode == refinement and questions_per_turn <= 1",
+      "id": "I03.pass.01",
       "oracle": "入口为 refinement；交互一次只问一个关键问题",
+      "condition": {
+        "path": "observed.refinementInteractionPassed",
+        "operator": "eq",
+        "expected": true
+      },
       "evidenceRequired": [
         "results/I03/result.json"
       ]
@@ -33,7 +61,7 @@
   ],
   "evidence": [
     "results/I03/result.json",
-    "results/I03/artifacts/"
+    "results/I03/artifacts/index.json"
   ],
   "sourceScenario": 3
 }
