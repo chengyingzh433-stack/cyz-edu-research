@@ -18,6 +18,8 @@ Academic constraints govern this integration: preserve quotations, reference pun
 
 Record language, skill name, resolved SKILL.md path, repository (Chinese: https://github.com/syw2039/humanizer-zh), version when available and SHA-256 of the loaded skill. For mixed work record each scope separately. A dependency update does not retroactively certify earlier text.
 
+The repository-level `dependencies.lock.json` is the installation evidence for the supported Chinese and English routes. It records both observed installation roots (`C:\Users\W\.codex\skills` and `C:\Users\W\.agents\skills`), declared version or explicit unknown status, upstream and license evidence status, and a recomputable canonical directory hash. Runtime resolution remains strict: `zh` resolves only `humanizer-zh`; `en` resolves only `humanizer`. A missing required dependency is a blocking failure, and `qu-ai-wei` is never a substitute.
+
 ## Position In The Workflow
 
 Run this as the final language sub-pass of `S7`, after substantive revision and before `S8` finalization:
@@ -145,6 +147,8 @@ Compare before and after for:
 
 If meaning drifted, restore the last valid wording for that passage and revise more narrowly. Never repair drift from memory.
 
+Save the manual decision with the exact baseline and output SHA-256 values, issue type, disposition, and reason. In particular, changing a correlation statement into a causal statement must be recorded as `issue: correlation_to_causation` with `disposition: rejected`, even when the deterministic anchor check passes. The automated lock is necessary but never sufficient evidence of semantic equivalence.
+
 ### 6. Run A Second Language Check
 
 Inspect the corrected text again for formulaic openings, empty transitions, synonym rotation, uniform sentence rhythm, translation-shaped syntax, assistant voice, and unsupported uplift. This second pass checks whether semantic repairs reintroduced awkward or generic wording.
@@ -180,6 +184,8 @@ Allowed statuses:
 State the reviewed scope. Never report “全篇无 AI 味” unless every section was inspected, and even then describe the result as a bounded editorial assessment rather than a guarantee.
 
 Keep the report frontmatter synchronized. For `passed` or `passed_with_notes`, record `baseline_path`, `baseline_sha256`, `master_path`, `reviewed_sha256`, and `export_sha256`. Use project-relative paths. Immediately before export, recompute the current master hash and write it to `export_sha256`; it must equal `reviewed_sha256`.
+
+The immutable pre-pass baseline, editable post-pass master, and review report must be three separate files. Never point `baseline_path` and `master_path` to the same file, and never use the report itself as either text path. A later change to the master invalidates the old passing report at every project stage, not only at S8.
 
 Mirror the report status in the `academic_language_pass_status` field of `00-项目状态.md`. A final project state must not say `passed` while the report remains `in_progress`, `blocked`, or `not_started`.
 

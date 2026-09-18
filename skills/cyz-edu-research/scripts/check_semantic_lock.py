@@ -14,8 +14,14 @@ import unicodedata
 
 
 PATTERNS: dict[str, re.Pattern[str]] = {
+    "units": re.compile(
+        r"(?<![A-Za-z0-9_.])[-+]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?"
+        r"\s*(?:%|‰|mg|kg|g|μg|ug|mL|ml|L|cm|mm|km|m|s|ms|h|Hz|kHz|MHz|"
+        r"名|人|例|个|组|班|所|项|次|分|秒|分钟|小时|天|周|月|年)",
+        re.IGNORECASE,
+    ),
     "numbers": re.compile(
-        r"(?<![\w.])[-+]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?"
+        r"(?<![A-Za-z0-9_.])[-+]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?"
         r"(?:[eE][-+]?\d+)?(?:%|‰)?"
     ),
     "statistics": re.compile(
@@ -42,6 +48,11 @@ PATTERNS: dict[str, re.Pattern[str]] = {
     ),
     "quotations": re.compile(
         r"“[^”\n]+”|‘[^’\n]+’|\"[^\"\n]+\"|'[^'\n]+'"
+    ),
+    "negations": re.compile(
+        r"(?:未(?:发现|观察到|达到|显示|支持|通过|证明)?|不能|不可|并非|没有|"
+        r"无显著|不显著|\b(?:not|no|never|neither|without)\b)",
+        re.IGNORECASE,
     ),
 }
 
@@ -70,17 +81,111 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Do not warn when Markdown headings change",
     )
+    parser.add_argument(
+        "--language",
+        choices=("zh", "en"),
+        help="Resolve the required language dependency for Chinese or English",
+    )
+    parser.add_argument(
+        "--skills-root",
+        type=Path,
+        action="append",
+        default=[],
+        help="Skills directory to search; may be supplied more than once",
+    )
+    parser.add_argument(
+        "--manual-review",
+        type=Path,
+        help="Saved JSON manual semantic-regression review tied to both file hashes",
+    )
     return parser.parse_args()
 
 
 def read_text(path: Path) -> str:
     if not path.is_file():
         raise FileNotFoundError(path)
-    return path.read_text(encoding="utf-8")
+    return path.read_bytes().decode("utf-8")
 
 
 def digest(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def canonical_directory_metrics(root: Path) -> dict[str, object]:
+    entries: list[tuple[str, str, int]] = []
+    for path in root.rglob("*"):
+        if not path.is_file():
+            continue
+        data = path.read_bytes()
+        entries.append(
+            (
+                path.relative_to(root).as_posix(),
+                hashlib.sha256(data).hexdigest(),
+                len(data),
+            )
+        )
+    entries.sort(key=lambda item: item[0])
+    canonical = "".join(
+        f"{relative}\t{file_hash}\t{size}\n"
+        for relative, file_hash, size in entries
+    ).encode("utf-8")
+    return {
+        "fileCount": len(entries),
+        "bytes": sum(item[2] for item in entries),
+        "directorySha256": hashlib.sha256(canonical).hexdigest(),
+    }
+
+
+def resolve_language_dependency(
+    language: str, skills_roots: list[Path]
+) -> dict[str, object]:
+    dependency_name = {"zh": "humanizer-zh", "en": "humanizer"}[language]
+    for root in skills_roots:
+        skill_path = root.expanduser().resolve() / dependency_name / "SKILL.md"
+        if skill_path.is_file():
+            dependency = {
+                "language": language,
+                "name": dependency_name,
+                "path": str(skill_path),
+                "skillSha256": hashlib.sha256(skill_path.read_bytes()).hexdigest(),
+            }
+            dependency.update(canonical_directory_metrics(skill_path.parent))
+            return dependency
+    searched = ", ".join(str(path.expanduser().resolve()) for path in skills_roots)
+    raise FileNotFoundError(
+        f"required language dependency '{dependency_name}' was not found in: "
+        f"{searched or '(no skills roots supplied)'}; no fallback was used"
+    )
+
+
+def load_manual_review(
+    path: Path, before_sha256: str, after_sha256: str
+) -> dict[str, object]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    required = {
+        "schemaVersion",
+        "reviewType",
+        "baselineSha256",
+        "outputSha256",
+        "issue",
+        "disposition",
+        "reason",
+    }
+    if not isinstance(payload, dict) or not required <= payload.keys():
+        raise ValueError("manual review lacks required fields")
+    if payload["schemaVersion"] != 1:
+        raise ValueError("manual review schemaVersion must be 1")
+    if payload["reviewType"] != "manual-semantic-regression":
+        raise ValueError("manual review has an invalid reviewType")
+    if payload["baselineSha256"] != before_sha256:
+        raise ValueError("manual review baselineSha256 does not match the baseline")
+    if payload["outputSha256"] != after_sha256:
+        raise ValueError("manual review outputSha256 does not match the output")
+    if payload["disposition"] not in {"accepted", "rejected"}:
+        raise ValueError("manual review disposition must be accepted or rejected")
+    if not str(payload["issue"]).strip() or not str(payload["reason"]).strip():
+        raise ValueError("manual review issue and reason must be non-empty")
+    return payload
 
 
 def normalize_token(token: str) -> str:
@@ -285,6 +390,32 @@ def to_markdown(result: dict[str, object]) -> str:
             str(result["limitations"]),
         )
     )
+    dependency = result.get("dependency")
+    if isinstance(dependency, dict):
+        lines.extend(
+            (
+                "",
+                "## 语言依赖",
+                "",
+                f"- 语言：`{dependency['language']}`",
+                f"- Skill：`{dependency['name']}`",
+                f"- 实际路径：`{dependency['path']}`",
+                f"- SKILL.md SHA-256：`{dependency['skillSha256']}`",
+                f"- 目录 SHA-256：`{dependency['directorySha256']}`",
+            )
+        )
+    manual_review = result.get("manual_review")
+    if isinstance(manual_review, dict):
+        lines.extend(
+            (
+                "",
+                "## 人工语义回归",
+                "",
+                f"- 问题：`{manual_review['issue']}`",
+                f"- 处置：`{manual_review['disposition']}`",
+                f"- 理由：{manual_review['reason']}",
+            )
+        )
     return "\n".join(lines) + "\n"
 
 
@@ -304,6 +435,24 @@ def main() -> int:
         after_text,
         args.allow_heading_change,
     )
+    result["automated_status"] = result["status"]
+    try:
+        if args.language:
+            result["dependency"] = resolve_language_dependency(
+                args.language, args.skills_root
+            )
+        if args.manual_review:
+            manual_review = load_manual_review(
+                args.manual_review,
+                str(result["before"]["sha256"]),
+                str(result["after"]["sha256"]),
+            )
+            result["manual_review"] = manual_review
+            if manual_review["disposition"] == "rejected":
+                result["status"] = "fail"
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+        print(f"ERROR {exc}", file=sys.stderr)
+        return 2
     output = (
         json.dumps(result, ensure_ascii=False, indent=2) + "\n"
         if args.json

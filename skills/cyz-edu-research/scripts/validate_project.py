@@ -470,6 +470,59 @@ def main() -> int:
         if language_status not in ALLOWED_LANGUAGE_PASS_STATUS:
             errors.append(f"invalid academic-language-pass status: {language_status!r}")
 
+        if language_status in {"passed", "passed_with_notes"}:
+            baseline_path_value = frontmatter_value(report_text, "baseline_path")
+            master_path_value = frontmatter_value(report_text, "master_path")
+            baseline_hash = frontmatter_value(report_text, "baseline_sha256")
+            reviewed_hash = frontmatter_value(report_text, "reviewed_sha256")
+            export_hash = frontmatter_value(report_text, "export_sha256")
+
+            for key, value in (
+                ("baseline_sha256", baseline_hash),
+                ("reviewed_sha256", reviewed_hash),
+                ("export_sha256", export_hash),
+            ):
+                if value is None or not SHA256_RE.fullmatch(value):
+                    errors.append(f"final language report has invalid {key}")
+
+            if reviewed_hash and export_hash and reviewed_hash.lower() != export_hash.lower():
+                errors.append(
+                    "current export hash differs from reviewed post-language-pass hash"
+                )
+
+            resolved_language_paths: dict[str, Path] = {}
+            for key, value, expected_hash in (
+                ("baseline_path", baseline_path_value, baseline_hash),
+                ("master_path", master_path_value, reviewed_hash),
+            ):
+                if not value:
+                    errors.append(f"final language report lacks {key}")
+                    continue
+                candidate = (root / value).resolve()
+                try:
+                    candidate.relative_to(root)
+                except ValueError:
+                    errors.append(f"language report {key} escapes project root: {value}")
+                    continue
+                resolved_language_paths[key] = candidate
+                if candidate == language_report.resolve():
+                    errors.append(f"language report {key} must be separate from the report")
+                if not candidate.is_file():
+                    errors.append(f"language report {key} does not exist: {value}")
+                elif expected_hash and SHA256_RE.fullmatch(expected_hash):
+                    actual_hash = sha256_file(candidate)
+                    if actual_hash.lower() != expected_hash.lower():
+                        errors.append(
+                            f"language report {key} hash differs from current file"
+                        )
+
+            if (
+                resolved_language_paths.get("baseline_path")
+                == resolved_language_paths.get("master_path")
+                and "baseline_path" in resolved_language_paths
+            ):
+                errors.append("language report baseline_path and master_path must be different")
+
         if stage == "S8" and gate == "passed":
             if language_status not in FINAL_LANGUAGE_PASS_STATUS:
                 errors.append(
@@ -488,47 +541,6 @@ def main() -> int:
                 errors.append(
                     "project state language-pass status does not match report status"
                 )
-            if language_status in {"passed", "passed_with_notes"}:
-                baseline_path_value = frontmatter_value(report_text, "baseline_path")
-                master_path_value = frontmatter_value(report_text, "master_path")
-                baseline_hash = frontmatter_value(report_text, "baseline_sha256")
-                reviewed_hash = frontmatter_value(report_text, "reviewed_sha256")
-                export_hash = frontmatter_value(report_text, "export_sha256")
-
-                for key, value in (
-                    ("baseline_sha256", baseline_hash),
-                    ("reviewed_sha256", reviewed_hash),
-                    ("export_sha256", export_hash),
-                ):
-                    if value is None or not SHA256_RE.fullmatch(value):
-                        errors.append(f"final language report has invalid {key}")
-
-                if reviewed_hash and export_hash and reviewed_hash.lower() != export_hash.lower():
-                    errors.append(
-                        "current export hash differs from reviewed post-language-pass hash"
-                    )
-
-                for key, value, expected_hash in (
-                    ("baseline_path", baseline_path_value, baseline_hash),
-                    ("master_path", master_path_value, reviewed_hash),
-                ):
-                    if not value:
-                        errors.append(f"final language report lacks {key}")
-                        continue
-                    candidate = (root / value).resolve()
-                    try:
-                        candidate.relative_to(root)
-                    except ValueError:
-                        errors.append(f"language report {key} escapes project root: {value}")
-                        continue
-                    if not candidate.is_file():
-                        errors.append(f"language report {key} does not exist: {value}")
-                    elif expected_hash and SHA256_RE.fullmatch(expected_hash):
-                        actual_hash = sha256_file(candidate)
-                        if actual_hash.lower() != expected_hash.lower():
-                            errors.append(
-                                f"language report {key} hash differs from current file"
-                            )
 
     matrix = root / "03-文献证据矩阵.md"
     if matrix.is_file():
