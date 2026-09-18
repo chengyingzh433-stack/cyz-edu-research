@@ -23,10 +23,37 @@ def import_task(task_json, pdf, output, pdf_hash, page_count, title, generated):
     if task.get('status') not in ('completed', 'reused'):
         raise ValueError('MinerU task has not completed')
     options = task.get('options', {})
-    if options.get('provider') != 'local' or options.get('pages'):
+    if options.get('provider') != 'local' or options.get('pages') is not None:
         raise ValueError('Only full-document local tasks may become canonical caches')
     if Path(task.get('source', '')).resolve() != pdf.resolve():
         raise ValueError('MinerU task source does not match requested PDF')
+    if task.get('source_sha256') != pdf_hash or digest(pdf) != pdf_hash:
+        raise ValueError('MinerU task original source hash does not match requested PDF')
+    task_id = task.get('id')
+    base_task_id = task.get('base_task_id')
+    lineage = task.get('lineage_task_ids')
+    if (
+        not isinstance(task_id, str)
+        or not isinstance(base_task_id, str)
+        or not isinstance(lineage, list)
+        or not lineage
+        or any(not isinstance(item, str) for item in lineage)
+        or len(lineage) != len(set(lineage))
+        or lineage[0] != task_id
+        or lineage[-1] != base_task_id
+    ):
+        raise ValueError('MinerU task lineage is missing or invalid')
+    if task['status'] == 'completed' and (base_task_id != task_id or lineage != [task_id]):
+        raise ValueError('Completed MinerU task lineage is inconsistent')
+    if task['status'] == 'reused':
+        reused_from = task.get('reused_from_task_id')
+        if (
+            not isinstance(reused_from, str)
+            or len(lineage) < 2
+            or lineage[1] != reused_from
+            or base_task_id == task_id
+        ):
+            raise ValueError('Reused MinerU task lineage is incomplete')
     root = Path(task['outputDir']).resolve()
     md = contained(Path(task['markdown']), root)
     stem = md.stem
@@ -63,9 +90,13 @@ def import_task(task_json, pdf, output, pdf_hash, page_count, title, generated):
         if type(block.get('page_idx')) is not int or block['page_idx'] not in expected:
             raise ValueError('Invalid MinerU block page index')
     metadata = {
-        'task_id': task['id'], 'task_status': task['status'],
+        'task_id': task_id, 'task_status': task['status'],
         'source_sha256': pdf_hash, 'backend': middle.get('_backend'),
-        'desk_cache_key': task['key'], 'source_verification': 'Desk 0.3.1 cacheKey',
+        'desk_cache_key': task['key'], 'source_verification': 'original_input_sha256',
+        'runtime_version': version,
+        'runtime_settings': {k: settings[k] for k in ('modelSource', 'offline', 'modelRoot')},
+        'base_task_id': base_task_id, 'lineage_task_ids': lineage,
+        'reused_from_task_id': task.get('reused_from_task_id'),
         'version': middle.get('_version_name'),
         'options': {k: options.get(k) for k in ('provider', 'backend', 'method', 'language', 'formula', 'table', 'pages')},
         'content_list_sha256': digest(content_path), 'middle_sha256': digest(middle_path),

@@ -245,7 +245,8 @@ class SemanticLockTests(unittest.TestCase):
             lock["canonicalDirectoryHashAlgorithm"],
         )
         dependencies = {item["name"]: item for item in lock["dependencies"]}
-        self.assertEqual({"humanizer-zh", "humanizer"}, set(dependencies))
+        self.assertEqual({"humanizer-zh", "humanizer", "mineru"}, set(dependencies))
+        self.assertNotIn("mineru", lock["languageRouting"].values())
 
         expected_metadata = {
             "humanizer-zh": {
@@ -263,6 +264,14 @@ class SemanticLockTests(unittest.TestCase):
                 "sourceStatus": "declared-in-README",
                 "license": "MIT",
                 "licenseStatus": "declared-in-SKILL-and-LICENSE",
+            },
+            "mineru": {
+                "version": "4.0.0-desk-local",
+                "versionStatus": "declared",
+                "upstream": None,
+                "sourceStatus": "unknown-local-wrapper",
+                "license": None,
+                "licenseStatus": "unknown-no-LICENSE-or-NOTICE",
             },
         }
         for name, expected in expected_metadata.items():

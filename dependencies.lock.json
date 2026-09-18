@@ -59,6 +59,33 @@
         }
       ],
       "rootsEqual": true
+    },
+    {
+      "name": "mineru",
+      "version": "4.0.0-desk-local",
+      "versionStatus": "declared",
+      "versionEvidence": "SKILL.md metadata.version",
+      "upstream": null,
+      "sourceStatus": "unknown-local-wrapper",
+      "license": null,
+      "licenseStatus": "unknown-no-LICENSE-or-NOTICE",
+      "installations": [
+        {
+          "root": "codex",
+          "path": "C:\\Users\\W\\.codex\\skills\\mineru",
+          "fileCount": 31,
+          "bytes": 204389,
+          "directorySha256": "0ad62aca302c359a9d627628c93730b3eea4d13362e1b66e3f3cffada58209d6"
+        },
+        {
+          "root": "agents",
+          "path": "C:\\Users\\W\\.agents\\skills\\mineru",
+          "fileCount": 31,
+          "bytes": 204389,
+          "directorySha256": "0ad62aca302c359a9d627628c93730b3eea4d13362e1b66e3f3cffada58209d6"
+        }
+      ],
+      "rootsEqual": true
     }
   ]
 }

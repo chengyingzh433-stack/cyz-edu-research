@@ -9,8 +9,11 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import shutil
 import sys
+import tempfile
 from typing import Any
+import uuid
 
 
 SCHEMA_VERSION = 2
@@ -195,13 +198,59 @@ def parse_page_spec(spec: str, page_count: int) -> list[int]:
     return sorted(pages)
 
 
-def cache_fingerprint(digest: str, image_mode: str, dpi: int) -> dict[str, Any]:
+def mineru_task_binding(task: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(task, dict):
+        raise ValueError("MinerU task record must be a JSON object")
+    options = task.get("options")
+    settings = task.get("runtimeSettings")
+    if not isinstance(options, dict) or not isinstance(settings, dict):
+        raise ValueError("MinerU task record lacks options or runtime settings")
+    option_fields = ("provider", "backend", "method", "language", "formula", "table", "pages")
+    setting_fields = ("modelSource", "offline", "modelRoot")
+    if any(key not in options for key in option_fields):
+        raise ValueError("MinerU task record lacks conversion options")
+    if any(key not in settings for key in setting_fields):
+        raise ValueError("MinerU task record lacks runtime settings")
+    if options["provider"] != "local" or options["backend"] != "pipeline":
+        raise ValueError("MinerU cache requires the local Pipeline provider")
+    if options["pages"] is not None:
+        raise ValueError("MinerU cache requires a full-document task")
+    if settings["offline"] is not True:
+        raise ValueError("MinerU cache requires offline runtime settings")
+    source_hash = task.get("source_sha256")
+    cache_key = task.get("key")
+    runtime_version = task.get("runtime_version")
+    if not isinstance(source_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", source_hash):
+        raise ValueError("MinerU task record lacks an original source hash")
+    if not isinstance(cache_key, str) or not cache_key:
+        raise ValueError("MinerU task record lacks a Desk cache key")
+    if not isinstance(runtime_version, str) or not runtime_version:
+        raise ValueError("MinerU task record lacks a runtime version")
     return {
+        "source_sha256": source_hash,
+        "desk_cache_key": cache_key,
+        "options": {key: options[key] for key in option_fields},
+        "runtime_version": runtime_version,
+        "runtime_settings": {key: settings[key] for key in setting_fields},
+    }
+
+
+def cache_fingerprint(
+    digest: str,
+    image_mode: str,
+    dpi: int,
+    *,
+    mineru_binding: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    fingerprint = {
         "pdf_sha256": digest,
         "conversion_mode": image_mode,
         "dpi": dpi,
         "converter_schema": SCHEMA_VERSION,
     }
+    if mineru_binding is not None:
+        fingerprint["mineru_request"] = mineru_binding
+    return fingerprint
 
 
 def validate_cache(output_dir: Path, fingerprint: dict[str, Any]) -> tuple[bool, str]:
@@ -216,27 +265,176 @@ def validate_cache(output_dir: Path, fingerprint: dict[str, Any]) -> tuple[bool,
     try:
         manifest = load_json(output_dir / "conversion_manifest.json")
         source_map = load_json(output_dir / "source_map.json")
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, UnicodeError, ValueError, json.JSONDecodeError) as exc:
         return False, f"invalid cache metadata: {exc}"
     for key, expected in fingerprint.items():
         if manifest.get(key) != expected:
             return False, f"fingerprint mismatch: {key}"
+    if source_map.get("pdf_sha256") != fingerprint.get("pdf_sha256"):
+        return False, "source map original PDF hash does not match fingerprint"
     page_count = manifest.get("page_count")
     pages = source_map.get("pages")
-    if not isinstance(page_count, int) or not isinstance(pages, list) or len(pages) != page_count:
+    if not isinstance(page_count, int) or page_count < 1 or not isinstance(pages, list) or len(pages) != page_count:
         return False, "page count does not match source map"
-    markdown = (output_dir / "paper.md").read_text(encoding="utf-8")
+    try:
+        markdown = (output_dir / "paper.md").read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        return False, f"invalid cache Markdown: {exc}"
     headings = re.findall(r"(?m)^## PDF 第 (\d+) 页$", markdown)
     if headings != [str(n) for n in range(1, page_count + 1)]:
         return False, "Markdown page headings do not match PDF page count"
+    if any(not isinstance(page, dict) for page in pages):
+        return False, "source map page metadata is invalid"
     if [page.get("pdf_page") for page in pages] != list(range(1, page_count + 1)):
         return False, "source map page sequence is invalid"
     for page in pages:
-        for item in page.get("figures", []) + page.get("page_renders", []):
-            asset = (output_dir / item.get("asset", "")).resolve()
+        figures = page.get("figures", [])
+        renders = page.get("page_renders", [])
+        if not isinstance(figures, list) or not isinstance(renders, list):
+            return False, "cache asset metadata must use lists"
+        for item in figures + renders:
+            if not isinstance(item, dict) or not isinstance(item.get("asset"), str) or not item["asset"]:
+                return False, "cache asset metadata is invalid"
+            asset = (output_dir / item["asset"]).resolve()
             if not asset.is_relative_to(output_dir.resolve()) or not asset.is_file() or asset.stat().st_size == 0:
                 return False, "missing or unsafe cache asset"
+    if manifest.get("extraction_source") == "mineru_desk_local":
+        binding = fingerprint.get("mineru_request")
+        if not isinstance(binding, dict):
+            return False, "MinerU cache lacks a pinned mineru_request fingerprint"
+        manifest_mineru = manifest.get("mineru")
+        source_mineru = source_map.get("mineru")
+        if not isinstance(manifest_mineru, dict) or manifest_mineru != source_mineru:
+            return False, "MinerU lineage metadata is missing or inconsistent"
+        status = manifest_mineru.get("task_status")
+        task_id = manifest_mineru.get("task_id")
+        base_task_id = manifest_mineru.get("base_task_id")
+        lineage = manifest_mineru.get("lineage_task_ids")
+        if (
+            status not in {"completed", "reused"}
+            or manifest_mineru.get("source_sha256") != fingerprint.get("pdf_sha256")
+            or not isinstance(task_id, str)
+            or not isinstance(base_task_id, str)
+            or not isinstance(lineage, list)
+            or not lineage
+            or lineage[0] != task_id
+            or lineage[-1] != base_task_id
+            or len(lineage) != len(set(lineage))
+        ):
+            return False, "MinerU task lineage is invalid"
+        required = {
+            "desk_cache_key": binding.get("desk_cache_key"),
+            "options": binding.get("options"),
+            "runtime_version": binding.get("runtime_version"),
+            "runtime_settings": binding.get("runtime_settings"),
+            "source_verification": "original_input_sha256",
+        }
+        if any(manifest_mineru.get(key) != value for key, value in required.items()):
+            return False, "MinerU provenance does not match mineru_request"
+        options = manifest_mineru.get("options")
+        settings = manifest_mineru.get("runtime_settings")
+        if (
+            not isinstance(options, dict)
+            or options.get("provider") != "local"
+            or options.get("backend") != "pipeline"
+            or options.get("pages") is not None
+            or not isinstance(settings, dict)
+            or settings.get("offline") is not True
+        ):
+            return False, "MinerU provenance is not full-document local/offline Pipeline"
+        if status == "completed" and lineage != [task_id]:
+            return False, "completed MinerU cache has invalid lineage"
+        if status == "reused" and (
+            len(lineage) < 2
+            or manifest_mineru.get("reused_from_task_id") != lineage[1]
+        ):
+            return False, "reused MinerU cache lacks source lineage"
+    elif "mineru_request" in fingerprint:
+        return False, "fingerprint requests MinerU but cache provenance is not MinerU"
     return True, "valid"
+
+
+def cache_first_probe(
+    output_dir: Path,
+    fingerprint: dict[str, Any],
+    discover_on_miss=None,
+) -> tuple[bool, str]:
+    valid, reason = validate_cache(output_dir, fingerprint)
+    if not valid and discover_on_miss is not None:
+        discover_on_miss()
+    return valid, reason
+
+
+def local_fallback_policy(
+    *, ocr_available: bool, unrecognized_pages: list[int]
+) -> dict[str, Any]:
+    return {
+        "mode": "local_native",
+        "ocr_available": ocr_available,
+        "unrecognized_pages": sorted(set(unrecognized_pages)),
+        "auto_upload": False,
+        "notice": (
+            "Local native fallback only; never auto-upload. "
+            "Unrecognized pages remain explicit and require local review."
+        ),
+    }
+
+
+def publish_cache_atomically(
+    prepared_dir: Path,
+    destination: Path,
+    fingerprint: dict[str, Any],
+    *,
+    cleanup_backup=shutil.rmtree,
+) -> str | None:
+    prepared = prepared_dir.resolve()
+    target = destination.resolve()
+    valid, reason = validate_cache(prepared, fingerprint)
+    if not valid:
+        raise ValueError(f"prepared cache failed validation: {reason}")
+    if prepared.parent != target.parent:
+        raise ValueError("atomic cache publication requires a sibling staging directory")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    backup = target.with_name(f".{target.name}.previous-{uuid.uuid4().hex}")
+    had_target = target.exists()
+    if had_target:
+        target.replace(backup)
+    try:
+        prepared.replace(target)
+    except Exception:
+        if had_target and backup.exists() and not target.exists():
+            backup.replace(target)
+        raise
+    else:
+        if backup.exists():
+            try:
+                cleanup_backup(backup)
+            except Exception as exc:
+                # Publication has committed. Retaining the recoverable old cache is safer
+                # than reporting failure after the canonical path already changed.
+                return f"backup cleanup failed after commit: {exc}"
+    return None
+
+
+def update_cache_atomically(
+    destination: Path,
+    fingerprint: dict[str, Any],
+    update_callback,
+) -> str | None:
+    """Apply a supplemental cache update in a sibling copy, then publish it."""
+    target = destination.resolve()
+    valid, reason = validate_cache(target, fingerprint)
+    if not valid:
+        raise ValueError(f"existing cache failed validation: {reason}")
+    staging = target.with_name(f".{target.name}.staging-{uuid.uuid4().hex}")
+    try:
+        shutil.copytree(target, staging)
+        update_callback(staging)
+        return publish_cache_atomically(staging, target, fingerprint)
+    except BaseException:
+        if staging.exists():
+            shutil.rmtree(staging, ignore_errors=True)
+        raise
 
 
 def markdown_header(
@@ -740,6 +938,8 @@ def refresh_project_cache_records(project_root: Path) -> int:
             key: manifest.get(key)
             for key in ("pdf_sha256", "conversion_mode", "dpi", "converter_schema")
         }
+        if "mineru_request" in manifest:
+            fingerprint["mineru_request"] = manifest["mineru_request"]
         valid, _ = validate_cache(manifest_path.parent, fingerprint)
         if not valid:
             continue
@@ -818,34 +1018,58 @@ def main() -> int:
         print(f"ERROR {exc}", file=sys.stderr)
         return 2
 
-    fingerprint = cache_fingerprint(digest, args.image_mode, args.dpi)
-    valid, reason = validate_cache(output_dir, fingerprint)
-    if args.check_cache:
-        print(f"CACHE_REUSED {output_dir}" if valid else f"CACHE_MISS {reason}")
-        return 0 if valid else 3
     if args.mineru_task and args.source_txt:
         print("ERROR choose either --mineru-task or --source-txt", file=sys.stderr)
         return 2
-    output_dir.mkdir(parents=True, exist_ok=True)
-    (output_dir / "assets").mkdir(parents=True, exist_ok=True)
     source_txt = args.source_txt.expanduser().resolve() if args.source_txt else None
+    mineru_binding = None
+    if args.mineru_task is not None:
+        try:
+            mineru_task_record = load_json(args.mineru_task)
+            mineru_binding = mineru_task_binding(mineru_task_record)
+            if mineru_binding["source_sha256"] != digest:
+                raise ValueError("MinerU task original source hash does not match input PDF")
+            if Path(mineru_task_record.get("source", "")).expanduser().resolve() != pdf_path:
+                raise ValueError("MinerU task source path does not match input PDF")
+        except Exception as exc:
+            print(f"ERROR invalid MinerU task record: {exc}", file=sys.stderr)
+            return 2
+    fingerprint = cache_fingerprint(
+        digest, args.image_mode, args.dpi, mineru_binding=mineru_binding
+    )
+    valid, reason = cache_first_probe(output_dir, fingerprint)
+    if args.check_cache:
+        print(f"CACHE_REUSED {output_dir}" if valid else f"CACHE_MISS {reason}")
+        return 0 if valid else 3
     if valid and not args.force:
-        manifest = load_json(output_dir / "conversion_manifest.json")
-        source_map = load_json(output_dir / "source_map.json")
-        added = render_selected_pages(
-            pdf_path, output_dir, digest, args.dpi, source_map, render_pages
-        )
-        if added:
-            stats = manifest.setdefault("stats", {})
-            stats["rendered_pages"] = sum(
-                len(page.get("page_renders", [])) for page in source_map.get("pages", [])
-            )
-            manual = set(manifest.get("supplemental_render_pages", []))
-            manual.update(added)
-            manifest["supplemental_render_pages"] = sorted(manual)
-            atomic_json(output_dir / "source_map.json", source_map)
-            atomic_json(output_dir / "conversion_manifest.json", manifest)
-            atomic_text(output_dir / "conversion_report.md", build_report(manifest))
+        added: list[int] = []
+        if render_pages:
+            def apply_render_update(staging: Path) -> None:
+                nonlocal added
+                manifest = load_json(staging / "conversion_manifest.json")
+                source_map = load_json(staging / "source_map.json")
+                added = render_selected_pages(
+                    pdf_path, staging, digest, args.dpi, source_map, render_pages
+                )
+                if not added:
+                    return
+                stats = manifest.setdefault("stats", {})
+                stats["rendered_pages"] = sum(
+                    len(page.get("page_renders", []))
+                    for page in source_map.get("pages", [])
+                )
+                manual = set(manifest.get("supplemental_render_pages", []))
+                manual.update(added)
+                manifest["supplemental_render_pages"] = sorted(manual)
+                atomic_json(staging / "source_map.json", source_map)
+                atomic_json(staging / "conversion_manifest.json", manifest)
+                atomic_text(staging / "conversion_report.md", build_report(manifest))
+
+            try:
+                update_cache_atomically(output_dir, fingerprint, apply_render_update)
+            except Exception as exc:
+                print(f"ERROR supplemental render failed: {exc}", file=sys.stderr)
+                return 1
         cleanup_message = cleanup_temporary_txt(source_txt, args.temp_dir)
         if project_root:
             refresh_project_cache_records(project_root)
@@ -856,6 +1080,11 @@ def main() -> int:
             print(cleanup_message)
         return 0
 
+    output_dir.parent.mkdir(parents=True, exist_ok=True)
+    prepared_dir = Path(
+        tempfile.mkdtemp(prefix=f".{output_dir.name}.staging-", dir=output_dir.parent)
+    )
+    (prepared_dir / "assets").mkdir(parents=True, exist_ok=True)
     generated_at = now_utc()
     title = args.title or metadata_title or pdf_path.stem
     if not title or title.lower() in {"untitled", "microsoft word"}:
@@ -866,7 +1095,13 @@ def main() -> int:
             sys.path.insert(0, str(Path(__file__).resolve().parent))
             from mineru_cache import import_task
             markdown, source_map, stats = import_task(
-                args.mineru_task, pdf_path, output_dir, digest, page_count, title, generated_at
+                args.mineru_task,
+                pdf_path,
+                prepared_dir,
+                digest,
+                page_count,
+                title,
+                generated_at,
             )
             extraction_source = "mineru_desk_local"
         elif source_txt is not None:
@@ -887,7 +1122,7 @@ def main() -> int:
             else:
                 markdown, source_map, stats = extract_with_pymupdf(
                     pdf_path,
-                    output_dir,
+                    prepared_dir,
                     args.image_mode,
                     args.dpi,
                     digest,
@@ -897,43 +1132,57 @@ def main() -> int:
                 )
                 extraction_source = "pymupdf_native_pdf"
     except Exception as exc:
+        shutil.rmtree(prepared_dir, ignore_errors=True)
         print(f"ERROR conversion failed: {exc}", file=sys.stderr)
         return 1
 
-    manifest: dict[str, Any] = {
-        **fingerprint,
-        "paper_id": paper_id,
-        "title": title,
-        "source_pdf": str(pdf_path),
-        "source_size_bytes": pdf_path.stat().st_size,
-        "page_count": page_count,
-        "generated_at_utc": generated_at,
-        "extraction_source": extraction_source,
-        "stats": stats,
-        "supplemental_render_pages": [],
-    }
-    if source_txt:
-        manifest["temporary_text_source"] = str(source_txt)
-    if extraction_source == "mineru_desk_local":
-        manifest["mineru"] = source_map["mineru"]
-    atomic_text(output_dir / "paper.md", markdown)
-    atomic_json(output_dir / "source_map.json", source_map)
-    atomic_json(output_dir / "conversion_manifest.json", manifest)
-    atomic_text(output_dir / "conversion_report.md", build_report(manifest))
+    try:
+        manifest: dict[str, Any] = {
+            **fingerprint,
+            "paper_id": paper_id,
+            "title": title,
+            "source_pdf": str(pdf_path),
+            "source_size_bytes": pdf_path.stat().st_size,
+            "page_count": page_count,
+            "generated_at_utc": generated_at,
+            "extraction_source": extraction_source,
+            "stats": stats,
+            "supplemental_render_pages": [],
+            "network_policy": "local_only_no_auto_upload",
+        }
+        if source_txt:
+            manifest["temporary_text_source"] = str(source_txt)
+        if extraction_source == "mineru_desk_local":
+            manifest["mineru"] = source_map["mineru"]
+        else:
+            manifest["local_fallback"] = local_fallback_policy(
+                ocr_available=False,
+                unrecognized_pages=list(stats.get("ocr_pages", [])),
+            )
+        atomic_text(prepared_dir / "paper.md", markdown)
+        atomic_json(prepared_dir / "source_map.json", source_map)
+        atomic_json(prepared_dir / "conversion_manifest.json", manifest)
+        atomic_text(prepared_dir / "conversion_report.md", build_report(manifest))
 
-    added = render_selected_pages(pdf_path, output_dir, digest, args.dpi, source_map, render_pages)
-    if added:
-        stats["rendered_pages"] = sum(
-            len(page.get("page_renders", [])) for page in source_map.get("pages", [])
+        added = render_selected_pages(
+            pdf_path, prepared_dir, digest, args.dpi, source_map, render_pages
         )
-        manifest["supplemental_render_pages"] = added
-        atomic_json(output_dir / "source_map.json", source_map)
-        atomic_json(output_dir / "conversion_manifest.json", manifest)
-        atomic_text(output_dir / "conversion_report.md", build_report(manifest))
+        if added:
+            stats["rendered_pages"] = sum(
+                len(page.get("page_renders", []))
+                for page in source_map.get("pages", [])
+            )
+            manifest["supplemental_render_pages"] = added
+            atomic_json(prepared_dir / "source_map.json", source_map)
+            atomic_json(prepared_dir / "conversion_manifest.json", manifest)
+            atomic_text(prepared_dir / "conversion_report.md", build_report(manifest))
 
-    verified, verify_reason = validate_cache(output_dir, fingerprint)
-    if not verified:
-        print(f"ERROR generated cache failed validation: {verify_reason}", file=sys.stderr)
+        if sha256_file(pdf_path) != digest:
+            raise ValueError("original PDF changed during conversion")
+        publish_cache_atomically(prepared_dir, output_dir, fingerprint)
+    except Exception as exc:
+        shutil.rmtree(prepared_dir, ignore_errors=True)
+        print(f"ERROR generated cache failed validation: {exc}", file=sys.stderr)
         return 1
     cleanup_message = cleanup_temporary_txt(source_txt, args.temp_dir)
     cache_count = refresh_project_cache_records(project_root) if project_root else None
@@ -947,6 +1196,8 @@ def main() -> int:
     )
     if added:
         print("LOCAL_PAGES_RENDERED " + ",".join(str(page) for page in added))
+    if extraction_source != "mineru_desk_local":
+        print("LOCAL_FALLBACK local-only; never auto-upload")
     if cleanup_message:
         print(cleanup_message)
     if cache_count is not None:
