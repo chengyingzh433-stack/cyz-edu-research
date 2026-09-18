@@ -38,10 +38,16 @@ def directory_metrics(root: Path) -> dict[str, object]:
         file_names.sort()
         for file_name in file_names:
             path = Path(base) / file_name
+            relative_path = path.relative_to(root)
+            if "__pycache__" in relative_path.parts or relative_path.suffix in {
+                ".pyc",
+                ".pyo",
+            }:
+                continue
             data = path.read_bytes()
             entries.append(
                 (
-                    path.relative_to(root).as_posix(),
+                    relative_path.as_posix(),
                     hashlib.sha256(data).hexdigest(),
                     len(data),
                 )
@@ -93,15 +99,98 @@ class SemanticLockTests(unittest.TestCase):
 
     def copied_dependency_fixture(self, *names: str) -> Path:
         seed = self.temp_root / "dependency-seed"
+        metadata = {
+            "humanizer-zh": {
+                "skill": "---\nname: humanizer-zh\nlicense: MIT\n---\n",
+                "upstream": "https://github.com/syw2039/humanizer-zh.git",
+            },
+            "humanizer": {
+                "skill": (
+                    "---\nname: humanizer\nlicense: MIT\nmetadata:\n"
+                    '  version: "2.9.1"\n---\n'
+                ),
+                "upstream": "https://github.com/blader/humanizer.git",
+            },
+            "qu-ai-wei": {
+                "skill": "---\nname: qu-ai-wei\n---\n",
+                "upstream": "https://example.invalid/qu-ai-wei.git",
+            },
+        }
         for name in names:
             dependency = seed / name
             dependency.mkdir(parents=True)
             (dependency / "SKILL.md").write_text(
-                f"---\nname: {name}\n---\n", encoding="utf-8"
+                metadata[name]["skill"], encoding="utf-8"
             )
+            (dependency / "README.md").write_text(
+                f"Source: {metadata[name]['upstream']}\n", encoding="utf-8"
+            )
+            (dependency / "LICENSE").write_text("MIT License\n", encoding="utf-8")
+            transient = dependency / "__pycache__"
+            transient.mkdir()
+            (transient / "ignored.pyc").write_bytes(b"transient")
         fixture = self.temp_root / "dependency-fixture"
         shutil.copytree(seed, fixture)
         return fixture
+
+    def write_dependency_lock(self, skills_root: Path) -> Path:
+        dependencies = []
+        metadata = {
+            "humanizer-zh": {
+                "version": None,
+                "versionStatus": "unknown",
+                "versionEvidence": None,
+                "upstream": "https://github.com/syw2039/humanizer-zh.git",
+                "sourceStatus": "declared-in-README",
+                "licenseStatus": "declared-in-LICENSE",
+            },
+            "humanizer": {
+                "version": "2.9.1",
+                "versionStatus": "declared",
+                "versionEvidence": "SKILL.md metadata.version",
+                "upstream": "https://github.com/blader/humanizer.git",
+                "sourceStatus": "declared-in-README",
+                "licenseStatus": "declared-in-SKILL-and-LICENSE",
+            },
+        }
+        for name, item in metadata.items():
+            path = skills_root / name
+            metrics = (
+                directory_metrics(path)
+                if path.is_dir()
+                else {"fileCount": 0, "bytes": 0, "directorySha256": "0" * 64}
+            )
+            dependencies.append(
+                {
+                    "name": name,
+                    **item,
+                    "license": "MIT",
+                    "installations": [
+                        {"root": "fixture", "path": str(path), **metrics}
+                    ],
+                    "rootsEqual": True,
+                }
+            )
+        lock = self.temp_root / f"dependencies-{len(list(self.temp_root.glob('dependencies-*.lock.json')))}.lock.json"
+        lock.write_text(
+            json.dumps(
+                {
+                    "schemaVersion": 1,
+                    "languageRouting": {"zh": "humanizer-zh", "en": "humanizer"},
+                    "canonicalDirectoryHashAlgorithm": (
+                        "relativePath<TAB>fileSha256<TAB>byteLength<LF>, sorted by "
+                        "relativePath, excluding __pycache__, *.pyc, and *.pyo; "
+                        "SHA-256 of UTF-8 bytes"
+                    ),
+                    "dependencies": dependencies,
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        return lock
 
     def copied_project_fixture(self) -> Path:
         seed = self.temp_root / "project-seed"
@@ -140,7 +229,7 @@ class SemanticLockTests(unittest.TestCase):
         )
         return baseline, master, report
 
-    def test_dependency_lock_records_actual_roots_and_canonical_hashes(self):
+    def test_dependency_lock_records_portable_routes_and_host_evidence(self):
         lock = json.loads(LOCK.read_text(encoding="utf-8"))
 
         self.assertEqual(1, lock["schemaVersion"])
@@ -148,7 +237,7 @@ class SemanticLockTests(unittest.TestCase):
             {"zh": "humanizer-zh", "en": "humanizer"}, lock["languageRouting"]
         )
         self.assertEqual(
-            "relativePath<TAB>fileSha256<TAB>byteLength<LF>, sorted by relativePath; SHA-256 of UTF-8 bytes",
+            "relativePath<TAB>fileSha256<TAB>byteLength<LF>, sorted by relativePath, excluding __pycache__, *.pyc, and *.pyo; SHA-256 of UTF-8 bytes",
             lock["canonicalDirectoryHashAlgorithm"],
         )
         dependencies = {item["name"]: item for item in lock["dependencies"]}
@@ -181,20 +270,39 @@ class SemanticLockTests(unittest.TestCase):
                 item["root"] for item in dependency["installations"]
             })
             for installation in dependency["installations"]:
-                with self.subTest(name=name, root=installation["root"]):
+                self.assertRegex(installation["directorySha256"], r"^[0-9a-f]{64}$")
+                self.assertTrue(Path(installation["path"]).is_absolute())
+
+    def test_available_host_installations_match_canonical_hashes(self):
+        lock = json.loads(LOCK.read_text(encoding="utf-8"))
+        checked = 0
+        for dependency in lock["dependencies"]:
+            for installation in dependency["installations"]:
+                with self.subTest(
+                    name=dependency["name"], root=installation["root"]
+                ):
                     path = Path(installation["path"])
-                    self.assertTrue(path.is_dir(), path)
+                    if not path.is_dir():
+                        continue
+                    checked += 1
                     self.assertEqual(directory_metrics(path), {
                         "fileCount": installation["fileCount"],
                         "bytes": installation["bytes"],
                         "directorySha256": installation["directorySha256"],
                     })
+        if checked == 0:
+            self.skipTest("recorded host dependency installations are unavailable")
 
     def test_h01_routes_chinese_and_english_only_to_their_declared_dependencies(self):
         before, after = self.copied_text_fixture()
         skills_root = self.copied_dependency_fixture(
             "humanizer-zh", "humanizer", "qu-ai-wei"
         )
+        dependency_lock = self.write_dependency_lock(skills_root)
+        for name in ("humanizer-zh", "humanizer"):
+            (skills_root / name / "__pycache__" / "ignored.pyc").write_bytes(
+                b"changed transient cache"
+            )
 
         results = {}
         for language in ("zh", "en"):
@@ -206,6 +314,8 @@ class SemanticLockTests(unittest.TestCase):
                 language,
                 "--skills-root",
                 skills_root,
+                "--dependency-lock",
+                dependency_lock,
                 "--json",
             )
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
@@ -213,6 +323,14 @@ class SemanticLockTests(unittest.TestCase):
 
         self.assertEqual("humanizer-zh", results["zh"]["dependency"]["name"])
         self.assertEqual("humanizer", results["en"]["dependency"]["name"])
+        self.assertIsNone(results["zh"]["dependency"]["version"])
+        self.assertEqual("unknown", results["zh"]["dependency"]["versionStatus"])
+        self.assertEqual("2.9.1", results["en"]["dependency"]["version"])
+        self.assertEqual(
+            "https://github.com/blader/humanizer.git",
+            results["en"]["dependency"]["upstream"],
+        )
+        self.assertEqual("MIT", results["en"]["dependency"]["license"])
         for language in ("zh", "en"):
             dependency = results[language]["dependency"]
             self.assertEqual(
@@ -232,6 +350,7 @@ class SemanticLockTests(unittest.TestCase):
     def test_h03_missing_dependency_fails_clearly_without_qu_ai_wei_substitution(self):
         before, after = self.copied_text_fixture()
         skills_root = self.copied_dependency_fixture("qu-ai-wei")
+        dependency_lock = self.write_dependency_lock(skills_root)
 
         result = run_script(
             CHECK,
@@ -241,6 +360,8 @@ class SemanticLockTests(unittest.TestCase):
             "zh",
             "--skills-root",
             skills_root,
+            "--dependency-lock",
+            dependency_lock,
             "--json",
         )
 
@@ -248,6 +369,135 @@ class SemanticLockTests(unittest.TestCase):
         self.assertIn("required language dependency 'humanizer-zh'", result.stderr)
         self.assertIn("no fallback was used", result.stderr)
         self.assertNotIn('"name": "qu-ai-wei"', result.stdout)
+
+    def test_dependency_resolution_rejects_missing_lock_unapproved_root_and_wrong_hash(self):
+        before, after = self.copied_text_fixture()
+        approved_root = self.copied_dependency_fixture("humanizer-zh", "humanizer")
+        dependency_lock = self.write_dependency_lock(approved_root)
+
+        missing_lock = run_script(
+            CHECK,
+            before,
+            after,
+            "--language",
+            "zh",
+            "--skills-root",
+            approved_root,
+            "--dependency-lock",
+            self.temp_root / "missing.lock.json",
+            "--json",
+        )
+        self.assertEqual(2, missing_lock.returncode)
+        self.assertIn("dependency lock does not exist", missing_lock.stderr)
+
+        unapproved_root = self.temp_root / "unapproved-root"
+        shutil.copytree(approved_root, unapproved_root)
+        unapproved = run_script(
+            CHECK,
+            before,
+            after,
+            "--language",
+            "zh",
+            "--skills-root",
+            unapproved_root,
+            "--dependency-lock",
+            dependency_lock,
+            "--json",
+        )
+        self.assertEqual(2, unapproved.returncode)
+        self.assertIn("is not an approved installation", unapproved.stderr)
+        self.assertIn("no fallback was used", unapproved.stderr)
+
+        (approved_root / "humanizer-zh" / "SKILL.md").write_text(
+            "---\nname: humanizer-zh\nlicense: MIT\n---\n# tampered\n",
+            encoding="utf-8",
+        )
+        tampered = run_script(
+            CHECK,
+            before,
+            after,
+            "--language",
+            "zh",
+            "--skills-root",
+            approved_root,
+            "--dependency-lock",
+            dependency_lock,
+            "--json",
+        )
+        self.assertEqual(2, tampered.returncode)
+        self.assertIn("directory hash mismatch", tampered.stderr)
+        self.assertIn("no fallback was used", tampered.stderr)
+
+    def test_dependency_resolution_rejects_wrong_locked_source_even_with_matching_hash(self):
+        before, after = self.copied_text_fixture()
+        skills_root = self.copied_dependency_fixture("humanizer-zh", "humanizer")
+        (skills_root / "humanizer-zh" / "README.md").write_text(
+            "Source: https://example.invalid/wrong.git\n", encoding="utf-8"
+        )
+        dependency_lock = self.write_dependency_lock(skills_root)
+
+        result = run_script(
+            CHECK,
+            before,
+            after,
+            "--language",
+            "zh",
+            "--skills-root",
+            skills_root,
+            "--dependency-lock",
+            dependency_lock,
+            "--json",
+        )
+
+        self.assertEqual(2, result.returncode)
+        self.assertIn("upstream source does not match the dependency lock", result.stderr)
+        self.assertIn("no fallback was used", result.stderr)
+
+    def test_dependency_resolution_rejects_wrong_version_and_license_evidence(self):
+        before, after = self.copied_text_fixture()
+        skills_root = self.copied_dependency_fixture("humanizer-zh", "humanizer")
+        skill = skills_root / "humanizer" / "SKILL.md"
+        skill.write_text(
+            skill.read_text(encoding="utf-8").replace('version: "2.9.1"', 'version: "9.9.9"'),
+            encoding="utf-8",
+        )
+        version_lock = self.write_dependency_lock(skills_root)
+
+        wrong_version = run_script(
+            CHECK,
+            before,
+            after,
+            "--language",
+            "en",
+            "--skills-root",
+            skills_root,
+            "--dependency-lock",
+            version_lock,
+            "--json",
+        )
+        self.assertEqual(2, wrong_version.returncode)
+        self.assertIn("declared version does not match", wrong_version.stderr)
+
+        skill.write_text(
+            "---\nname: humanizer\nlicense: Apache-2.0\nmetadata:\n"
+            '  version: "2.9.1"\n---\n',
+            encoding="utf-8",
+        )
+        license_lock = self.write_dependency_lock(skills_root)
+        wrong_license = run_script(
+            CHECK,
+            before,
+            after,
+            "--language",
+            "en",
+            "--skills-root",
+            skills_root,
+            "--dependency-lock",
+            license_lock,
+            "--json",
+        )
+        self.assertEqual(2, wrong_license.returncode)
+        self.assertIn("SKILL.md license does not match", wrong_license.stderr)
 
     def test_h02_rejects_digit_unit_citation_and_negation_changes(self):
         cases = {
@@ -319,6 +569,36 @@ class SemanticLockTests(unittest.TestCase):
         self.assertEqual(
             "correlation_to_causation", payload["manual_review"]["issue"]
         )
+
+    def test_h02_correlation_to_causation_cannot_be_accepted_by_manual_record(self):
+        before, after = self.copied_text_fixture()
+        after.write_text(
+            after.read_text(encoding="utf-8").replace("与成绩相关", "导致成绩提高"),
+            encoding="utf-8",
+        )
+        manual_review = self.temp_root / "invalid-acceptance.json"
+        manual_review.write_text(
+            json.dumps(
+                {
+                    "schemaVersion": 1,
+                    "reviewType": "manual-semantic-regression",
+                    "baselineSha256": hashlib.sha256(before.read_bytes()).hexdigest(),
+                    "outputSha256": hashlib.sha256(after.read_bytes()).hexdigest(),
+                    "issue": "correlation_to_causation",
+                    "disposition": "accepted",
+                    "reason": "错误地接受因果强化。",
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+
+        result = run_script(
+            CHECK, before, after, "--manual-review", manual_review, "--json"
+        )
+
+        self.assertEqual(2, result.returncode)
+        self.assertIn("correlation_to_causation must be rejected", result.stderr)
 
     def test_h04_changed_master_invalidates_a_previously_passing_report(self):
         project = self.copied_project_fixture()

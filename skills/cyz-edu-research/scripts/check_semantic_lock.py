@@ -59,6 +59,11 @@ PATTERNS: dict[str, re.Pattern[str]] = {
 BLOCKING_CATEGORIES = tuple(PATTERNS)
 CATEGORY_PRIORITY = {name: index for index, name in enumerate(PATTERNS)}
 HEADING_PATTERN = re.compile(r"(?m)^#{1,6}\s+.+$")
+CANONICAL_DIRECTORY_HASH_ALGORITHM = (
+    "relativePath<TAB>fileSha256<TAB>byteLength<LF>, sorted by relativePath, "
+    "excluding __pycache__, *.pyc, and *.pyo; SHA-256 of UTF-8 bytes"
+)
+DEFAULT_DEPENDENCY_LOCK = Path(__file__).resolve().parents[3] / "dependencies.lock.json"
 
 
 def parse_args() -> argparse.Namespace:
@@ -94,6 +99,12 @@ def parse_args() -> argparse.Namespace:
         help="Skills directory to search; may be supplied more than once",
     )
     parser.add_argument(
+        "--dependency-lock",
+        type=Path,
+        default=DEFAULT_DEPENDENCY_LOCK,
+        help="Dependency lock to enforce (defaults to the repository lock)",
+    )
+    parser.add_argument(
         "--manual-review",
         type=Path,
         help="Saved JSON manual semantic-regression review tied to both file hashes",
@@ -116,10 +127,16 @@ def canonical_directory_metrics(root: Path) -> dict[str, object]:
     for path in root.rglob("*"):
         if not path.is_file():
             continue
+        relative_path = path.relative_to(root)
+        if "__pycache__" in relative_path.parts or relative_path.suffix in {
+            ".pyc",
+            ".pyo",
+        }:
+            continue
         data = path.read_bytes()
         entries.append(
             (
-                path.relative_to(root).as_posix(),
+                relative_path.as_posix(),
                 hashlib.sha256(data).hexdigest(),
                 len(data),
             )
@@ -136,25 +153,191 @@ def canonical_directory_metrics(root: Path) -> dict[str, object]:
     }
 
 
+def dependency_failure(message: str) -> ValueError:
+    return ValueError(f"{message}; no fallback was used")
+
+
+def normalized_path(path: Path) -> str:
+    return str(path.expanduser().resolve()).casefold()
+
+
+def frontmatter(text: str) -> str:
+    match = re.match(r"\A(?:\ufeff)?---[ \t]*\r?\n(.*?)\r?\n---", text, re.S)
+    return match.group(1) if match else ""
+
+
+def frontmatter_scalar(text: str, key: str) -> str | None:
+    match = re.search(
+        rf"(?m)^{re.escape(key)}:\s*([^\r\n]+?)\s*$", frontmatter(text)
+    )
+    if not match:
+        return None
+    return match.group(1).strip().strip("\"'")
+
+
+def metadata_version(text: str) -> str | None:
+    block = frontmatter(text)
+    match = re.search(
+        r"(?m)^metadata:\s*$\r?\n(?:^[ \t]+.*(?:\r?\n|$))*?"
+        r"^[ \t]+version:\s*([^\r\n]+?)\s*$",
+        block,
+    )
+    return match.group(1).strip().strip("\"'") if match else None
+
+
+def load_dependency_record(
+    language: str, dependency_lock: Path
+) -> tuple[str, dict[str, object]]:
+    lock_path = dependency_lock.expanduser().resolve()
+    if not lock_path.is_file():
+        raise dependency_failure(f"dependency lock does not exist: {lock_path}")
+    try:
+        lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise dependency_failure(f"dependency lock is unreadable: {exc}") from exc
+    if not isinstance(lock, dict) or lock.get("schemaVersion") != 1:
+        raise dependency_failure("dependency lock must use schemaVersion 1")
+    if lock.get("canonicalDirectoryHashAlgorithm") != CANONICAL_DIRECTORY_HASH_ALGORITHM:
+        raise dependency_failure("dependency lock uses an unsupported hash algorithm")
+    routing = lock.get("languageRouting")
+    if not isinstance(routing, dict) or routing.get(language) not in {
+        "humanizer-zh",
+        "humanizer",
+    }:
+        raise dependency_failure(f"dependency lock has no valid route for {language}")
+    dependency_name = str(routing[language])
+    expected_name = {"zh": "humanizer-zh", "en": "humanizer"}[language]
+    if dependency_name != expected_name:
+        raise dependency_failure(
+            f"dependency lock routes {language} to {dependency_name!r}, expected {expected_name!r}"
+        )
+    dependencies = lock.get("dependencies")
+    if not isinstance(dependencies, list):
+        raise dependency_failure("dependency lock lacks dependency records")
+    matches = [
+        item
+        for item in dependencies
+        if isinstance(item, dict) and item.get("name") == dependency_name
+    ]
+    if len(matches) != 1:
+        raise dependency_failure(
+            f"dependency lock must contain exactly one record for {dependency_name!r}"
+        )
+    return dependency_name, matches[0]
+
+
+def verify_dependency_metadata(
+    dependency_name: str, dependency_dir: Path, record: dict[str, object]
+) -> None:
+    skill_path = dependency_dir / "SKILL.md"
+    skill_text = skill_path.read_bytes().decode("utf-8")
+    if frontmatter_scalar(skill_text, "name") != dependency_name:
+        raise dependency_failure(
+            f"SKILL.md name does not match locked dependency {dependency_name!r}"
+        )
+
+    locked_version = record.get("version")
+    version_status = record.get("versionStatus")
+    actual_version = metadata_version(skill_text)
+    if version_status == "declared":
+        if not isinstance(locked_version, str) or actual_version != locked_version:
+            raise dependency_failure(
+                f"declared version does not match the dependency lock for {dependency_name!r}"
+            )
+    elif version_status == "unknown":
+        if locked_version is not None or actual_version is not None:
+            raise dependency_failure(
+                f"unknown version status does not match {dependency_name!r} metadata"
+            )
+    else:
+        raise dependency_failure(
+            f"dependency lock has invalid version status for {dependency_name!r}"
+        )
+
+    upstream = record.get("upstream")
+    if record.get("sourceStatus") != "declared-in-README" or not isinstance(
+        upstream, str
+    ):
+        raise dependency_failure(
+            f"dependency lock lacks declared README source for {dependency_name!r}"
+        )
+    readme_path = dependency_dir / "README.md"
+    if not readme_path.is_file() or upstream not in readme_path.read_text(encoding="utf-8"):
+        raise dependency_failure(
+            "upstream source does not match the dependency lock for "
+            f"{dependency_name!r}"
+        )
+
+    locked_license = record.get("license")
+    license_status = record.get("licenseStatus")
+    license_path = dependency_dir / "LICENSE"
+    if locked_license != "MIT" or not license_path.is_file() or "MIT License" not in license_path.read_text(encoding="utf-8"):
+        raise dependency_failure(
+            f"license evidence does not match the dependency lock for {dependency_name!r}"
+        )
+    if license_status == "declared-in-SKILL-and-LICENSE":
+        if frontmatter_scalar(skill_text, "license") != locked_license:
+            raise dependency_failure(
+                f"SKILL.md license does not match the dependency lock for {dependency_name!r}"
+            )
+    elif license_status != "declared-in-LICENSE":
+        raise dependency_failure(
+            f"dependency lock has invalid license status for {dependency_name!r}"
+        )
+
+
 def resolve_language_dependency(
-    language: str, skills_roots: list[Path]
+    language: str, skills_roots: list[Path], dependency_lock: Path
 ) -> dict[str, object]:
-    dependency_name = {"zh": "humanizer-zh", "en": "humanizer"}[language]
+    dependency_name, record = load_dependency_record(language, dependency_lock)
+    installations = record.get("installations")
+    if not isinstance(installations, list) or not installations:
+        raise dependency_failure(
+            f"dependency lock has no approved installations for {dependency_name!r}"
+        )
+    approved = {
+        normalized_path(Path(str(item["path"]))): item
+        for item in installations
+        if isinstance(item, dict) and isinstance(item.get("path"), str)
+    }
+    searched = []
     for root in skills_roots:
-        skill_path = root.expanduser().resolve() / dependency_name / "SKILL.md"
-        if skill_path.is_file():
-            dependency = {
-                "language": language,
-                "name": dependency_name,
-                "path": str(skill_path),
-                "skillSha256": hashlib.sha256(skill_path.read_bytes()).hexdigest(),
-            }
-            dependency.update(canonical_directory_metrics(skill_path.parent))
-            return dependency
-    searched = ", ".join(str(path.expanduser().resolve()) for path in skills_roots)
-    raise FileNotFoundError(
+        dependency_dir = root.expanduser().resolve() / dependency_name
+        searched.append(str(dependency_dir))
+        skill_path = dependency_dir / "SKILL.md"
+        if not skill_path.is_file():
+            continue
+        installation = approved.get(normalized_path(dependency_dir))
+        if installation is None:
+            raise dependency_failure(
+                f"dependency path {dependency_dir} is not an approved installation"
+            )
+        actual = canonical_directory_metrics(dependency_dir)
+        expected = {
+            "fileCount": installation.get("fileCount"),
+            "bytes": installation.get("bytes"),
+            "directorySha256": installation.get("directorySha256"),
+        }
+        if actual != expected:
+            raise dependency_failure(
+                f"directory hash mismatch for locked dependency {dependency_name!r}"
+            )
+        verify_dependency_metadata(dependency_name, dependency_dir, record)
+        dependency = {
+            "language": language,
+            "name": dependency_name,
+            "path": str(skill_path),
+            "skillSha256": hashlib.sha256(skill_path.read_bytes()).hexdigest(),
+            "version": record.get("version"),
+            "versionStatus": record.get("versionStatus"),
+            "upstream": record.get("upstream"),
+            "license": record.get("license"),
+        }
+        dependency.update(actual)
+        return dependency
+    raise dependency_failure(
         f"required language dependency '{dependency_name}' was not found in: "
-        f"{searched or '(no skills roots supplied)'}; no fallback was used"
+        f"{', '.join(searched) or '(no skills roots supplied)'}"
     )
 
 
@@ -183,6 +366,11 @@ def load_manual_review(
         raise ValueError("manual review outputSha256 does not match the output")
     if payload["disposition"] not in {"accepted", "rejected"}:
         raise ValueError("manual review disposition must be accepted or rejected")
+    if (
+        payload["issue"] == "correlation_to_causation"
+        and payload["disposition"] != "rejected"
+    ):
+        raise ValueError("correlation_to_causation must be rejected")
     if not str(payload["issue"]).strip() or not str(payload["reason"]).strip():
         raise ValueError("manual review issue and reason must be non-empty")
     return payload
@@ -439,7 +627,7 @@ def main() -> int:
     try:
         if args.language:
             result["dependency"] = resolve_language_dependency(
-                args.language, args.skills_root
+                args.language, args.skills_root, args.dependency_lock
             )
         if args.manual_review:
             manual_review = load_manual_review(

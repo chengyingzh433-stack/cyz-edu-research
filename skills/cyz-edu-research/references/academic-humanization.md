@@ -147,7 +147,7 @@ Compare before and after for:
 
 If meaning drifted, restore the last valid wording for that passage and revise more narrowly. Never repair drift from memory.
 
-Save the manual decision with the exact baseline and output SHA-256 values, issue type, disposition, and reason. In particular, changing a correlation statement into a causal statement must be recorded as `issue: correlation_to_causation` with `disposition: rejected`, even when the deterministic anchor check passes. The automated lock is necessary but never sufficient evidence of semantic equivalence.
+Save the manual decision with the exact baseline and output SHA-256 values, issue type, disposition, and reason. In particular, changing a correlation statement into a causal statement must be recorded as `issue: correlation_to_causation` with `disposition: rejected`, even when the deterministic anchor check passes. An `accepted` disposition for that issue is invalid and blocks completion. The automated lock is necessary but never sufficient evidence of semantic equivalence.
 
 ### 6. Run A Second Language Check
 
