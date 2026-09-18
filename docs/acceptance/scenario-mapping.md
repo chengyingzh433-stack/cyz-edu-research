@@ -43,6 +43,7 @@
 - `criteriaDslVersion` 当前固定为 `1`。每条通过条件和禁止行为都有稳定 ID、人工可读 oracle、结构化 `condition` 和已声明的证据路径。
 - condition 仅允许点分字段路径，以及 `eq`、`not_eq`、`gte`、`lte`、`exists`、`unchanged` 运算符。解释器使用封闭分支，不执行 `eval`、表达式字符串或动态代码。
 - `eq`、`not_eq` 与 `unchanged` 按 JSON 类型比较；布尔值不会与数值 `0` 或 `1` 混同。`unchanged` 的观测值固定为 `{"before": ..., "after": ...}`。
-- 场景运行结果遵循 `result-contract.schema.json`：包含版本、场景 ID、记录时间、状态、原始 `observations` 与来源证据。判据直接读取这些观测值，不允许用 `*Passed`、`*Valid`、`*Unchanged` 一类汇总布尔值自证成功。
+- 场景运行结果遵循 `result-contract.schema.json`：包含版本、24 个已声明场景之一的 ID、记录时间、状态、原始 `observations` 与来源证据。`validate_result` 额外执行 schema 无法表达的安全检查：`sourceEvidence` 必须属于结果自身的准确场景目录，`recordedAt` 必须是带 UTC `Z` 或显式时区偏移的有效 ISO-8601 时间。判据直接读取这些观测值，不允许用 `*Passed`、`*Valid`、`*Unchanged` 一类汇总布尔值自证成功。
+- 24 个场景当前锁定 108 条 criterion（62 条通过条件、46 条禁止行为）；数量变化必须由契约测试显式审查。
 - 所有证据路径必须是当前场景目录下的 POSIX 相对路径：`results/<scenario-id>/...`。绝对路径、盘符、UNC、反斜杠、任何纯点号路径段（`.`、`..`、`...` 等）、跨场景路径和未在顶层声明的 criterion 证据都会被拒绝。
 - 复现命令：`py -3.11 -m unittest tests.test_workflow_contract -v`。

@@ -317,7 +317,7 @@ class WorkflowContractTests(unittest.TestCase):
         )
 
     def test_result_document_contract_defines_raw_observation_shape(self):
-        from tests.scenarios.schema_validator import validate_instance
+        from tests.scenarios.schema_validator import validate_result
 
         schema = load_json(RESULT_SCHEMA_PATH)
         self.assertEqual(1, schema["properties"]["resultContractVersion"]["enum"][0])
@@ -327,19 +327,53 @@ class WorkflowContractTests(unittest.TestCase):
         )
         self.assertEqual("object", schema["properties"]["observations"]["type"])
         self.assertGreaterEqual(schema["properties"]["observations"]["minProperties"], 1)
-        validate_instance(
-            {
-                "resultContractVersion": 1,
-                "scenarioId": "M06",
-                "recordedAt": "2026-09-19T00:00:00+08:00",
-                "status": "observed",
-                "observations": {
-                    "sourceHashes": {"before": "abc", "after": "abc"}
-                },
-                "sourceEvidence": ["results/M06/artifacts/source-hashes.json"],
-            },
-            schema,
-        )
+        expected_ids = {
+            *(f"I{number:02d}" for number in range(1, 15)),
+            *(f"H{number:02d}" for number in range(1, 5)),
+            *(f"M{number:02d}" for number in range(1, 7)),
+        }
+        self.assertEqual(expected_ids, set(schema["properties"]["scenarioId"]["enum"]))
+        valid = {
+            "resultContractVersion": 1,
+            "scenarioId": "M06",
+            "recordedAt": "2026-09-19T00:00:00+08:00",
+            "status": "observed",
+            "observations": {"sourceHashes": {"before": "abc", "after": "abc"}},
+            "sourceEvidence": ["results/M06/artifacts/source-hashes.json"],
+        }
+        validate_result(valid, schema)
+        utc_result = copy.deepcopy(valid)
+        utc_result["recordedAt"] = "2026-09-19T00:00:00Z"
+        validate_result(utc_result, schema)
+
+    def test_result_document_rejects_invalid_identity_evidence_and_timestamp(self):
+        from tests.scenarios.schema_validator import SchemaValidationError, validate_result
+
+        schema = load_json(RESULT_SCHEMA_PATH)
+        valid = {
+            "resultContractVersion": 1,
+            "scenarioId": "M06",
+            "recordedAt": "2026-09-19T00:00:00+08:00",
+            "status": "observed",
+            "observations": {"sourceHashes": {"before": "abc", "after": "abc"}},
+            "sourceEvidence": ["results/M06/artifacts/source-hashes.json"],
+        }
+        unknown_scenario = copy.deepcopy(valid)
+        unknown_scenario["scenarioId"] = "I99"
+        unknown_scenario["sourceEvidence"] = ["results/I99/evidence.json"]
+        cross_scenario = copy.deepcopy(valid)
+        cross_scenario["sourceEvidence"] = ["results/I01/evidence.json"]
+        invalid_timestamp = copy.deepcopy(valid)
+        invalid_timestamp["recordedAt"] = "x"
+
+        for label, mutation in (
+            ("unknown scenario", unknown_scenario),
+            ("cross-scenario evidence", cross_scenario),
+            ("invalid timestamp", invalid_timestamp),
+        ):
+            with self.subTest(mutation=label):
+                with self.assertRaises(SchemaValidationError):
+                    validate_result(mutation, schema)
 
     def test_every_required_scenario_has_an_oracle(self):
         self.assertEqual(
@@ -417,9 +451,15 @@ class WorkflowContractTests(unittest.TestCase):
                         self.assertTrue(condition["path"].startswith("observations."))
                         if isinstance(condition["expected"], bool):
                             self.assertNotRegex(leaf, OPAQUE_BOOLEAN_NAME)
-        self.assertGreaterEqual(criterion_count, 70)
+        self.assertEqual(108, criterion_count)
 
         scenarios = load_scenarios()
+        self.assertEqual(
+            62, sum(len(item["passCriteria"]) for item in scenarios.values())
+        )
+        self.assertEqual(
+            46, sum(len(item["forbiddenBehavior"]) for item in scenarios.values())
+        )
         m02 = {
             criterion["condition"]["path"]
             for criterion in scenarios["M02"]["passCriteria"]

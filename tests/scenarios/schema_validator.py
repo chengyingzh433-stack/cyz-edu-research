@@ -6,6 +6,7 @@ fixture validation reproducible on Python 3.11 without ambient packages.
 
 import json
 import re
+from datetime import datetime
 from typing import Any
 
 
@@ -208,6 +209,35 @@ def validate_instance(instance: Any, schema: dict[str, Any]) -> None:
 
     validate_schema(schema)
     _validate(instance, schema, schema, "$")
+
+
+_ISO_8601_TIMESTAMP = re.compile(
+    r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T"
+    r"[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?"
+    r"(?:Z|[+-][0-9]{2}:[0-9]{2})$"
+)
+
+
+def validate_result(instance: dict[str, Any], schema: dict[str, Any]) -> None:
+    """Validate a result document plus its cross-field and timestamp rules."""
+
+    validate_instance(instance, schema)
+    scenario_id = instance["scenarioId"]
+    prefix = f"results/{scenario_id}/"
+    if any(not path.startswith(prefix) for path in instance["sourceEvidence"]):
+        raise SchemaValidationError(
+            "result sourceEvidence must stay within its exact scenario directory"
+        )
+
+    recorded_at = instance["recordedAt"]
+    if _ISO_8601_TIMESTAMP.fullmatch(recorded_at) is None:
+        raise SchemaValidationError("recordedAt must be an ISO-8601 timestamp with timezone")
+    try:
+        parsed = datetime.fromisoformat(recorded_at.replace("Z", "+00:00"))
+    except ValueError as error:
+        raise SchemaValidationError("recordedAt is not a valid ISO-8601 timestamp") from error
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise SchemaValidationError("recordedAt must include UTC Z or an explicit offset")
 
 
 def _json_equal(left: Any, right: Any) -> bool:
