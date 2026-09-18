@@ -1,0 +1,37 @@
+{
+  "id": "H03",
+  "title": "缺失语言依赖时清晰失败且不替代",
+  "mapsTo": [
+    "WF08"
+  ],
+  "executionMode": "deterministic",
+  "preconditions": [
+    "隔离的 H03 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "隔离根中缺少目标 humanizer 的请求"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "解析依赖",
+    "记录缺失诊断",
+    "停止改写"
+  ],
+  "forbiddenBehavior": [
+    "偷偷改用 qu-ai-wei",
+    "声称检查通过"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "missing_dependency_fails_without_fallback",
+      "oracle": "结果说明缺失依赖和恢复步骤，调用记录无替代",
+      "evidenceRequired": [
+        "results/H03/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/H03/result.json",
+    "results/H03/artifacts/"
+  ]
+}

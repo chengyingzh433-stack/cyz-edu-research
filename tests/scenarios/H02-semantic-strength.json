@@ -1,0 +1,36 @@
+{
+  "id": "H02",
+  "title": "语义锁拒绝数字变化与因果强化",
+  "mapsTo": [
+    "WF07"
+  ],
+  "executionMode": "scripted",
+  "preconditions": [
+    "隔离的 H02 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "含数字、单位、引文、否定和相关性陈述的基线及变体"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "运行语义锁",
+    "人工审查主张强度",
+    "记录拒绝理由"
+  ],
+  "forbiddenBehavior": [
+    "因语言更自然就接受语义漂移"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "semantic_and_manual_review_reject_drift",
+      "oracle": "字面量变化及相关到因果强化均被拒绝",
+      "evidenceRequired": [
+        "results/H02/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/H02/result.json",
+    "results/H02/artifacts/"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "id": "M01",
+  "title": "两篇真实 PDF 经本地 MinerU 解析并抽查",
+  "mapsTo": [
+    "WF09"
+  ],
+  "executionMode": "live",
+  "preconditions": [
+    "隔离的 M01 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "两篇授权公开 PDF 的绝对路径"
+  ],
+  "actor": "Codex live session",
+  "steps": [
+    "记录原件 hash",
+    "本地提交并等待完成",
+    "抽查页数文字表格图片",
+    "保存 task ID"
+  ],
+  "forbiddenBehavior": [
+    "上传云端",
+    "用合成样本替代真实 PDF"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "local_completed_tasks >= 2 and manual_page_review.passed",
+      "oracle": "两篇 PDF 有本地 task ID，页级抽查覆盖实际内容",
+      "evidenceRequired": [
+        "results/M01/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/M01/result.json",
+    "results/M01/artifacts/"
+  ]
+}

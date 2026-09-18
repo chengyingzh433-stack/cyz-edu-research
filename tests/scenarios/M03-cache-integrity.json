@@ -1,0 +1,37 @@
+{
+  "id": "M03",
+  "title": "错误源页图或 cache key 被拒绝",
+  "mapsTo": [
+    "WF10"
+  ],
+  "executionMode": "deterministic",
+  "preconditions": [
+    "隔离的 M03 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "错源 hash、缺页、缺 assets、错 key、未完成状态变体"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "逐一注入损坏",
+    "运行缓存验证",
+    "记录拒绝原因"
+  ],
+  "forbiddenBehavior": [
+    "接受部分缓存",
+    "把 running 当完成"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "all_invalid_cache_variants_rejected",
+      "oracle": "每个损坏变体均被拒绝且原因可区分",
+      "evidenceRequired": [
+        "results/M03/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/M03/result.json",
+    "results/M03/artifacts/"
+  ]
+}

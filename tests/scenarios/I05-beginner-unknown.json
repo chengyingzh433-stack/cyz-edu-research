@@ -1,0 +1,38 @@
+{
+  "id": "I05",
+  "title": "初学者回答不知道时获得具体支持",
+  "mapsTo": [
+    "WF03"
+  ],
+  "executionMode": "scripted",
+  "preconditions": [
+    "隔离的 I05 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "脚本用户在关键选择处回答“不知道”"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "解释当前取舍",
+    "给有依据的推荐和示例",
+    "保留用户选择权"
+  ],
+  "forbiddenBehavior": [
+    "替用户作重大决定",
+    "连续抛出术语问卷"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "decision.source != ai_assumed_user_answer",
+      "oracle": "没有把 AI 推荐写成用户确认，且交互给出依据与选项",
+      "evidenceRequired": [
+        "results/I05/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/I05/result.json",
+    "results/I05/artifacts/"
+  ],
+  "sourceScenario": 5
+}

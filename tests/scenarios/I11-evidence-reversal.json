@@ -1,0 +1,39 @@
+{
+  "id": "I11",
+  "title": "新证据否定原选择时回退并保留历史",
+  "mapsTo": [
+    "WF05",
+    "WF06"
+  ],
+  "executionMode": "deterministic",
+  "preconditions": [
+    "隔离的 I11 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "ready 项目与否定原选择的新证据"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "登记新证据",
+    "idea revision 加一",
+    "回退决定并标记下游复核"
+  ],
+  "forbiddenBehavior": [
+    "删除旧决定",
+    "保持 ready 且不标记下游"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "revision.invalidates_only_affected_decisions",
+      "oracle": "相关决定失效、历史保留且下游成果需复核",
+      "evidenceRequired": [
+        "results/I11/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/I11/result.json",
+    "results/I11/artifacts/"
+  ],
+  "sourceScenario": 11
+}

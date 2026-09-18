@@ -1,0 +1,39 @@
+{
+  "id": "I12",
+  "title": "选题简报交接不虚报 S2-S5",
+  "mapsTo": [
+    "WF05",
+    "WF06"
+  ],
+  "executionMode": "deterministic",
+  "preconditions": [
+    "隔离的 I12 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "idea 已 ready 但 S2-S5 未全部通过"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "验证简报",
+    "执行 handoff",
+    "比较阶段门检前后状态"
+  ],
+  "forbiddenBehavior": [
+    "把 ready 自动传播为 S2-S5 passed",
+    "复制全部 PDF 正文"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "readyDoesNotPassStages == true",
+      "oracle": "handoff 后 S2-S5 仍保持实际状态",
+      "evidenceRequired": [
+        "results/I12/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/I12/result.json",
+    "results/I12/artifacts/"
+  ],
+  "sourceScenario": 12
+}

@@ -1,0 +1,39 @@
+{
+  "id": "I03",
+  "title": "模糊 idea 直接澄清并定向定位",
+  "mapsTo": [
+    "WF02",
+    "WF03"
+  ],
+  "executionMode": "live",
+  "preconditions": [
+    "隔离的 I03 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "用户仅提供“AI 辅助实验教学”"
+  ],
+  "actor": "Codex live session",
+  "steps": [
+    "判定成熟度",
+    "每轮追问一个关键边界",
+    "定向寻找相近研究"
+  ],
+  "forbiddenBehavior": [
+    "重扫整个学科",
+    "未经确认直接进入写作"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "idea.mode == refinement and questions_per_turn <= 1",
+      "oracle": "入口为 refinement；交互一次只问一个关键问题",
+      "evidenceRequired": [
+        "results/I03/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/I03/result.json",
+    "results/I03/artifacts/"
+  ],
+  "sourceScenario": 3
+}

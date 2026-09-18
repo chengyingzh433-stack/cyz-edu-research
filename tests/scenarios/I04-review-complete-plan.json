@@ -1,0 +1,39 @@
+{
+  "id": "I04",
+  "title": "完整方案先审查关键缺口与替代解释",
+  "mapsTo": [
+    "WF02",
+    "WF03"
+  ],
+  "executionMode": "scripted",
+  "preconditions": [
+    "隔离的 I04 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "结构完整但未经审查的研究方案"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "检查主张与证据缺口",
+    "记录替代解释",
+    "形成继续或修改决定"
+  ],
+  "forbiddenBehavior": [
+    "跳过审查直接写论文",
+    "把格式完整等同研究成立"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "review.records_counter_explanations",
+      "oracle": "选题卡记录替代解释与失败条件",
+      "evidenceRequired": [
+        "results/I04/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/I04/result.json",
+    "results/I04/artifacts/"
+  ],
+  "sourceScenario": 4
+}

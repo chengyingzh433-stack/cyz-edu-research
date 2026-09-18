@@ -1,0 +1,38 @@
+{
+  "id": "I13",
+  "title": "旧项目升级保留内容且新项目模板完整",
+  "mapsTo": [
+    "WF05"
+  ],
+  "executionMode": "deterministic",
+  "preconditions": [
+    "隔离的 I13 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "旧项目 fixture 与空白新项目目录"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "迁移并记录备份",
+    "重复迁移",
+    "初始化并校验新项目"
+  ],
+  "forbiddenBehavior": [
+    "覆盖旧问题或原件",
+    "重复迁移改变字节"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "migration.preserves_bytes_and_is_idempotent",
+      "oracle": "旧内容有原字节备份、二次迁移不变且新项目 schema=2",
+      "evidenceRequired": [
+        "results/I13/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/I13/result.json",
+    "results/I13/artifacts/"
+  ],
+  "sourceScenario": 13
+}

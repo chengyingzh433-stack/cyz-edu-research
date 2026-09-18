@@ -1,0 +1,38 @@
+{
+  "id": "I09",
+  "title": "定性教材或教学设计采用适配证据要求",
+  "mapsTo": [
+    "WF04"
+  ],
+  "executionMode": "scripted",
+  "preconditions": [
+    "隔离的 I09 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "定性、教材或教学设计研究问题"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "识别问题类型",
+    "选择匹配证据路线",
+    "区分设计依据与效果证据"
+  ],
+  "forbiddenBehavior": [
+    "强制量化假设或消融",
+    "用满意度替代学习成效"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "design.evidence_path_matches_question_type",
+      "oracle": "证据路线与问题类型一致并注明不适用项",
+      "evidenceRequired": [
+        "results/I09/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/I09/result.json",
+    "results/I09/artifacts/"
+  ],
+  "sourceScenario": 9
+}

@@ -1,0 +1,38 @@
+{
+  "id": "I01",
+  "title": "仅有宽泛领域时进入文献优先发现",
+  "mapsTo": [
+    "WF01"
+  ],
+  "executionMode": "scripted",
+  "preconditions": [
+    "隔离的 I01 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "用户仅提供“高中物理教学”"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "初始化 discovery 入口",
+    "扫描可核验文献范围",
+    "生成有依据的候选卡并请求方向选择"
+  ],
+  "forbiddenBehavior": [
+    "强迫用户先陈述课堂困惑",
+    "把未检出写成研究空白"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "idea.mode == discovery",
+      "oracle": "状态为 discovery；候选均含依据、未知与推荐理由",
+      "evidenceRequired": [
+        "results/I01/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/I01/result.json",
+    "results/I01/artifacts/"
+  ],
+  "sourceScenario": 1
+}

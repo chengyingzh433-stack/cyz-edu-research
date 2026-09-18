@@ -1,0 +1,38 @@
+{
+  "id": "H01",
+  "title": "中文与英文分别调用指定 humanizer",
+  "mapsTo": [
+    "WF07"
+  ],
+  "executionMode": "live",
+  "preconditions": [
+    "隔离的 H01 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "中文段落、英文段落及两项依赖"
+  ],
+  "actor": "Codex live session",
+  "steps": [
+    "分别保存基线",
+    "中文只调用 humanizer-zh",
+    "英文只调用 humanizer",
+    "记录输出与依赖 hash"
+  ],
+  "forbiddenBehavior": [
+    "交叉调用错误语言依赖",
+    "覆盖唯一基线"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "language_dependencies_match_text_language",
+      "oracle": "中文解析到 humanizer-zh，英文解析到 humanizer",
+      "evidenceRequired": [
+        "results/H01/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/H01/result.json",
+    "results/H01/artifacts/"
+  ]
+}

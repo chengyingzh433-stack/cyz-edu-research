@@ -1,0 +1,36 @@
+{
+  "id": "H04",
+  "title": "终稿变更使旧语言审阅失效",
+  "mapsTo": [
+    "WF08"
+  ],
+  "executionMode": "deterministic",
+  "preconditions": [
+    "隔离的 H04 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "已审阅终稿 hash 与后续正文修改"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "重算 hash",
+    "与审阅 hash 比较",
+    "标记旧报告失效"
+  ],
+  "forbiddenBehavior": [
+    "沿用旧通过状态导出"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "review.valid_only_when_hash_matches",
+      "oracle": "hash 不同后状态回到处理中或需复核",
+      "evidenceRequired": [
+        "results/H04/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/H04/result.json",
+    "results/H04/artifacts/"
+  ]
+}

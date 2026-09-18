@@ -1,0 +1,37 @@
+{
+  "id": "M02",
+  "title": "同源同参数复用且不重复提交",
+  "mapsTo": [
+    "WF10"
+  ],
+  "executionMode": "live",
+  "preconditions": [
+    "隔离的 M02 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "M01 中一篇 PDF 的相同源与参数"
+  ],
+  "actor": "Codex live session",
+  "steps": [
+    "再次请求",
+    "核对 cache key 与源任务",
+    "比较提交计数"
+  ],
+  "forbiddenBehavior": [
+    "创建第二任务",
+    "丢失源任务追溯"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "submission_count.delta == 0 and lineage_present",
+      "oracle": "没有新增提交且复用 manifest 指向源 task ID",
+      "evidenceRequired": [
+        "results/M02/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/M02/result.json",
+    "results/M02/artifacts/"
+  ]
+}

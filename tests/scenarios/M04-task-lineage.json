@@ -1,0 +1,37 @@
+{
+  "id": "M04",
+  "title": "复用任务保留完整 lineage",
+  "mapsTo": [
+    "WF10"
+  ],
+  "executionMode": "deterministic",
+  "preconditions": [
+    "隔离的 M04 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "completed 源任务与 reused 记录"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "验证状态",
+    "沿 lineage 到原始 source hash",
+    "核对参数"
+  ],
+  "forbiddenBehavior": [
+    "仅写 reused 而无源 task ID",
+    "跨 source hash 复用"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "lineage.resolves_to_original_source",
+      "oracle": "可追溯到完成任务、原文件 hash 和参数",
+      "evidenceRequired": [
+        "results/M04/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/M04/result.json",
+    "results/M04/artifacts/"
+  ]
+}

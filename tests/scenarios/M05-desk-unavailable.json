@@ -1,0 +1,39 @@
+{
+  "id": "M05",
+  "title": "缺 Desk 或无 OCR 时本地安全降级",
+  "mapsTo": [
+    "WF11"
+  ],
+  "executionMode": "scripted",
+  "preconditions": [
+    "隔离的 M05 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "Desk 不可用与无 OCR 扫描页 fixture"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "探测 Desk",
+    "输出本地降级",
+    "标记未识别页",
+    "模拟中断恢复"
+  ],
+  "forbiddenBehavior": [
+    "自动上传云端",
+    "捏造文字",
+    "中断后重复提交"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "fallback_is_local_and_submission_count_one",
+      "oracle": "无云上传、未识别页明确且恢复后只提交一次",
+      "evidenceRequired": [
+        "results/M05/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/M05/result.json",
+    "results/M05/artifacts/"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "id": "I07",
+  "title": "高度相似研究触发缩小改变或淘汰",
+  "mapsTo": [
+    "WF03"
+  ],
+  "executionMode": "scripted",
+  "preconditions": [
+    "隔离的 I07 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "候选卡与高度相似的可核验论文"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "比较任务和证据边界",
+    "记录实质修改或淘汰",
+    "保留历史与理由"
+  ],
+  "forbiddenBehavior": [
+    "只改标题继续推荐",
+    "删除淘汰历史"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "candidate.revision_or_elimination_is_reasoned",
+      "oracle": "修改或淘汰决定引用相近研究证据",
+      "evidenceRequired": [
+        "results/I07/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/I07/result.json",
+    "results/I07/artifacts/"
+  ],
+  "sourceScenario": 7
+}

@@ -1,0 +1,36 @@
+{
+  "id": "M06",
+  "title": "转换流程保持原件字节不变",
+  "mapsTo": [
+    "WF09"
+  ],
+  "executionMode": "deterministic",
+  "preconditions": [
+    "隔离的 M06 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "只读 PDF fixture 与转换请求"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "转换前计算 hash",
+    "执行转换或复用",
+    "转换后重算 hash"
+  ],
+  "forbiddenBehavior": [
+    "修改、重命名或删除原件"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "source.sha256_before == source.sha256_after",
+      "oracle": "原件转换前后 SHA256 完全一致",
+      "evidenceRequired": [
+        "results/M06/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/M06/result.json",
+    "results/M06/artifacts/"
+  ]
+}

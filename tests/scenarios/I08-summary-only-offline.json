@@ -1,0 +1,38 @@
+{
+  "id": "I08",
+  "title": "仅摘要或离线时保持证据边界",
+  "mapsTo": [
+    "WF04"
+  ],
+  "executionMode": "scripted",
+  "preconditions": [
+    "隔离的 I08 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "仅摘要材料与离线状态"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "记录访问级别",
+    "生成标注暂定的候选",
+    "登记待核验项"
+  ],
+  "forbiddenBehavior": [
+    "捏造全文证据",
+    "宣称已证明研究空白"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "claims.never_exceed_access_level",
+      "oracle": "所有主张不超出摘要/元数据范围，关键未知时不 ready",
+      "evidenceRequired": [
+        "results/I08/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/I08/result.json",
+    "results/I08/artifacts/"
+  ],
+  "sourceScenario": 8
+}

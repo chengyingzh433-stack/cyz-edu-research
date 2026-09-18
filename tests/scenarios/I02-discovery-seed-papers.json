@@ -1,0 +1,38 @@
+{
+  "id": "I02",
+  "title": "模糊领域加种子论文时先盘点复用再补覆盖",
+  "mapsTo": [
+    "WF01"
+  ],
+  "executionMode": "live",
+  "preconditions": [
+    "隔离的 I02 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "模糊领域描述与一批公开可读种子论文"
+  ],
+  "actor": "Codex live session",
+  "steps": [
+    "盘点去重并复用种子材料",
+    "识别覆盖偏差",
+    "仅补查未覆盖方向"
+  ],
+  "forbiddenBehavior": [
+    "重复询问文献已有信息",
+    "机械凑候选数量"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "search.reuses_seed_materials_and_bounds_supplement",
+      "oracle": "检索记录引用既有 paper_id 并说明补查范围与停止条件",
+      "evidenceRequired": [
+        "results/I02/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/I02/result.json",
+    "results/I02/artifacts/"
+  ],
+  "sourceScenario": 2
+}

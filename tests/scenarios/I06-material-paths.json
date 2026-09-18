@@ -1,0 +1,38 @@
+{
+  "id": "I06",
+  "title": "混合材料路径明确新增课堂数据需求",
+  "mapsTo": [
+    "WF03"
+  ],
+  "executionMode": "scripted",
+  "preconditions": [
+    "隔离的 I06 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "现有文本材料与尚未收集的课堂数据"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "按已有、可获得、需新增分类",
+    "核实资源状态",
+    "更新可行性"
+  ],
+  "forbiddenBehavior": [
+    "把计划数据写成已有",
+    "隐藏课堂收集负担"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "candidate.materials_are_partitioned",
+      "oracle": "材料路径清楚区分已有、可取得和需新增",
+      "evidenceRequired": [
+        "results/I06/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/I06/result.json",
+    "results/I06/artifacts/"
+  ],
+  "sourceScenario": 6
+}

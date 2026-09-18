@@ -1,0 +1,38 @@
+{
+  "id": "I10",
+  "title": "暂停后恢复当前决定且复用有效缓存",
+  "mapsTo": [
+    "WF05"
+  ],
+  "executionMode": "deterministic",
+  "preconditions": [
+    "隔离的 I10 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "含当前选题卡、决定和有效缓存的项目"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "关闭并重开项目",
+    "从状态文件恢复",
+    "核对缓存未重复转换"
+  ],
+  "forbiddenBehavior": [
+    "重置决定",
+    "重转 hash 相同的缓存"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "resume.preserved_decisions_and_cache_hashes",
+      "oracle": "恢复前后决定与有效缓存 hash 一致",
+      "evidenceRequired": [
+        "results/I10/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/I10/result.json",
+    "results/I10/artifacts/"
+  ],
+  "sourceScenario": 10
+}

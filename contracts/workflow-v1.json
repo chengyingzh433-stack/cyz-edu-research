@@ -1,0 +1,310 @@
+{
+  "contractVersion": 1,
+  "projectSchemaVersion": 2,
+  "readyDoesNotPassStages": true,
+  "stages": [
+    {
+      "id": "S0",
+      "name": "领域扫描与灵感发现",
+      "gate": {
+        "passCriteria": [
+          "方向或定向扫描已由用户确认"
+        ],
+        "evidenceRequired": [
+          "01-研究起点与问题.md",
+          "02-文献/00-检索记录.md"
+        ]
+      }
+    },
+    {
+      "id": "S1",
+      "name": "实践问题与研究问题",
+      "gate": {
+        "passCriteria": [
+          "主研究问题与范围已确认"
+        ],
+        "evidenceRequired": [
+          "01-研究起点与问题.md",
+          "00-项目状态.md"
+        ]
+      }
+    },
+    {
+      "id": "S2",
+      "name": "文献检索设计",
+      "gate": {
+        "passCriteria": [
+          "可复现检索计划已记录"
+        ],
+        "evidenceRequired": [
+          "02-文献/00-检索记录.md"
+        ]
+      }
+    },
+    {
+      "id": "S3",
+      "name": "文献筛选与分级阅读",
+      "gate": {
+        "passCriteria": [
+          "核心证据可追溯至来源"
+        ],
+        "evidenceRequired": [
+          "02-文献/01-筛选记录.md",
+          "02-文献/核心文献精读"
+        ]
+      }
+    },
+    {
+      "id": "S4",
+      "name": "文献综合与研究缺口",
+      "gate": {
+        "passCriteria": [
+          "候选缺口有证据且完成检索核查"
+        ],
+        "evidenceRequired": [
+          "03-文献证据矩阵.md",
+          "04-综述与研究缺口.md"
+        ]
+      }
+    },
+    {
+      "id": "S5",
+      "name": "研究设计",
+      "gate": {
+        "passCriteria": [
+          "研究问题、证据、方法与伦理相互对齐"
+        ],
+        "evidenceRequired": [
+          "05-研究方案.md"
+        ]
+      }
+    },
+    {
+      "id": "S6",
+      "name": "数据收集与分析",
+      "gate": {
+        "passCriteria": [
+          "结果可追溯地回答每个研究问题"
+        ],
+        "evidenceRequired": [
+          "06-数据与分析.md"
+        ]
+      }
+    },
+    {
+      "id": "S7",
+      "name": "论文写作",
+      "gate": {
+        "passCriteria": [
+          "各章节有依据且内部一致，语言处理通过语义回归"
+        ],
+        "evidenceRequired": [
+          "07-论文草稿",
+          "07-论文草稿/学术语言打磨报告.md"
+        ]
+      }
+    },
+    {
+      "id": "S8",
+      "name": "全文审查与正式输出",
+      "gate": {
+        "passCriteria": [
+          "完整性门检通过且未解决事项已披露"
+        ],
+        "evidenceRequired": [
+          "08-审查与修改记录.md"
+        ]
+      }
+    }
+  ],
+  "ideaEnums": {
+    "entryMode": [
+      "discovery",
+      "topic",
+      "materials"
+    ],
+    "ideaMode": [
+      "discovery",
+      "refinement"
+    ],
+    "ideaMaturity": [
+      "broad_interest",
+      "tentative_topic",
+      "method_first",
+      "positioned_question",
+      "study_plan"
+    ],
+    "ideaStatus": [
+      "not_started",
+      "exploring",
+      "refining",
+      "needs_verification",
+      "ready",
+      "blocked"
+    ],
+    "gateStatus": [
+      "pending",
+      "in_progress",
+      "passed",
+      "failed",
+      "blocked"
+    ],
+    "provenance": [
+      "user_statement",
+      "verified_source",
+      "researcher_inference",
+      "ai_suggestion",
+      "pending_verification",
+      "unusable"
+    ]
+  },
+  "entities": {
+    "task": {
+      "required": [
+        "taskId",
+        "stageId",
+        "status",
+        "title",
+        "inputs",
+        "outputs",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "artifact": {
+      "required": [
+        "artifactId",
+        "kind",
+        "path",
+        "sha256",
+        "stageId",
+        "status",
+        "provenance",
+        "createdAt"
+      ]
+    },
+    "evidence": {
+      "required": [
+        "evidenceId",
+        "claimId",
+        "sourceType",
+        "sourceLocator",
+        "accessLevel",
+        "verificationStatus",
+        "recordedAt"
+      ]
+    },
+    "decision": {
+      "required": [
+        "decisionId",
+        "question",
+        "answer",
+        "source",
+        "ideaRevision",
+        "affects",
+        "decidedAt"
+      ]
+    },
+    "event": {
+      "required": [
+        "eventId",
+        "eventType",
+        "actor",
+        "occurredAt",
+        "payload"
+      ]
+    },
+    "recoveryPoint": {
+      "required": [
+        "recoveryPointId",
+        "createdAt",
+        "reason",
+        "manifestPath",
+        "fileHashes",
+        "status"
+      ]
+    }
+  },
+  "allowedTransitions": {
+    "ideaStatus": {
+      "not_started": [
+        "exploring",
+        "refining",
+        "blocked"
+      ],
+      "exploring": [
+        "refining",
+        "needs_verification",
+        "blocked"
+      ],
+      "refining": [
+        "needs_verification",
+        "ready",
+        "blocked"
+      ],
+      "needs_verification": [
+        "exploring",
+        "refining",
+        "blocked"
+      ],
+      "ready": [
+        "needs_verification",
+        "refining"
+      ],
+      "blocked": [
+        "exploring",
+        "refining"
+      ]
+    },
+    "gateStatus": {
+      "pending": [
+        "in_progress",
+        "blocked"
+      ],
+      "in_progress": [
+        "passed",
+        "failed",
+        "blocked"
+      ],
+      "passed": [
+        "in_progress"
+      ],
+      "failed": [
+        "in_progress",
+        "blocked"
+      ],
+      "blocked": [
+        "in_progress"
+      ]
+    },
+    "taskStatus": {
+      "pending": [
+        "running",
+        "blocked",
+        "cancelled"
+      ],
+      "running": [
+        "completed",
+        "failed",
+        "blocked",
+        "cancelled"
+      ],
+      "blocked": [
+        "running",
+        "cancelled"
+      ],
+      "failed": [
+        "running",
+        "cancelled"
+      ],
+      "completed": [],
+      "cancelled": []
+    }
+  },
+  "invariants": [
+    "A ready idea permits handoff but never marks S2-S5 passed.",
+    "Task completion and stage-gate passage are independent.",
+    "User statements are not upgraded to verified evidence without a checked source.",
+    "Recovery preserves decisions and user-authored artifacts unless an explicit invalidation event records otherwise."
+  ]
+}

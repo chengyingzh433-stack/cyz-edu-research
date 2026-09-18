@@ -1,0 +1,38 @@
+{
+  "id": "I14",
+  "title": "双安装一致且内部引用与旧流程有效",
+  "mapsTo": [
+    "WF12"
+  ],
+  "executionMode": "deterministic",
+  "preconditions": [
+    "隔离的 I14 测试项目已创建并保留输入快照"
+  ],
+  "inputs": [
+    "两处授权安装根与受控 manifest"
+  ],
+  "actor": "CYZ scenario runner",
+  "steps": [
+    "比较受控文件 hash",
+    "解析相对链接",
+    "回归 PDF 与语言入口"
+  ],
+  "forbiddenBehavior": [
+    "纳入 pycache 比较",
+    "忽略断链或静默替代依赖"
+  ],
+  "passCriteria": [
+    {
+      "predicate": "install.controlled_trees_equal",
+      "oracle": "两处受控树一致，链接与 PDF/语言回归通过",
+      "evidenceRequired": [
+        "results/I14/result.json"
+      ]
+    }
+  ],
+  "evidence": [
+    "results/I14/result.json",
+    "results/I14/artifacts/"
+  ],
+  "sourceScenario": 14
+}
