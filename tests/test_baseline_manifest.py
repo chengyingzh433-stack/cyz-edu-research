@@ -148,15 +148,37 @@ class BaselineManifestTests(unittest.TestCase):
         if WORK_MANIFEST.exists():
             self.assertEqual(WORK_MANIFEST.read_bytes(), repo_bytes)
 
-    def test_repository_skill_matches_controlled_files(self):
+    def test_baseline_controlled_inventory_remains_valid_when_source_evolves(self):
         manifest = load_manifest()
-        expected = sorted(
-            manifest["cyzEduResearchInstalls"]["controlledFiles"],
-            key=lambda item: item["relativePath"],
-        )
-        actual = tree_inventory(ROOT / "skills" / "cyz-edu-research")
-        self.assertEqual(31, len(actual))
-        self.assertEqual(expected, actual)
+        controlled = manifest["cyzEduResearchInstalls"]["controlledFiles"]
+
+        # This is immutable G0 evidence, not a lock on the evolving repository tree.
+        # Installed copies and backups are still re-hashed in the tests below.
+        self.assertEqual(31, len(controlled))
+        paths = [item["relativePath"] for item in controlled]
+        self.assertEqual(len(paths), len(set(paths)))
+        for item in controlled:
+            relative = Path(item["relativePath"])
+            self.assertFalse(relative.is_absolute())
+            self.assertNotIn("..", relative.parts)
+            self.assertRegex(item["sha256"], r"^[0-9a-f]{64}$")
+            self.assertIsInstance(item["bytes"], int)
+            self.assertGreaterEqual(item["bytes"], 0)
+
+        backup_root = Path(manifest["paths"]["baselineBackupRoot"])
+        available_backups = [
+            backup_root / root_name / "cyz-edu-research"
+            for root_name in ("codex", "agents")
+            if (backup_root / root_name / "cyz-edu-research").is_dir()
+        ]
+        for backup in available_backups:
+            for item in controlled:
+                with self.subTest(backup=str(backup), path=item["relativePath"]):
+                    path = backup / item["relativePath"]
+                    self.assertTrue(path.is_file())
+                    data = path.read_bytes()
+                    self.assertEqual(item["bytes"], len(data))
+                    self.assertEqual(item["sha256"], hashlib.sha256(data).hexdigest())
 
     def test_cyz_install_tree_hashes_match_actual_files(self):
         manifest = load_manifest()

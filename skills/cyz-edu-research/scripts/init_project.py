@@ -19,6 +19,7 @@ DIRECTORIES = (
 
 TEMPLATE_MAP = {
     "project-status.md": "00-项目状态.md",
+    "idea-workspace.md": "01-研究起点与问题.md",
     "evidence-matrix.md": "03-文献证据矩阵.md",
     "research-design.md": "05-研究方案.md",
     "audit-report.md": "08-审查与修改记录.md",
@@ -26,7 +27,6 @@ TEMPLATE_MAP = {
 }
 
 SIMPLE_FILES = {
-    "01-研究起点与问题.md": "# 研究起点与问题\n\n## 原始想法或材料\n\n## 核心概念\n\n## 候选研究问题\n\n## 已确认研究问题\n\n## 决策记录\n",
     "02-文献/00-检索记录.md": "# 文献检索记录\n\n| 日期 | 数据库/来源 | 检索式 | 筛选条件 | 命中数 | 备注 |\n| --- | --- | --- | --- | --- | --- |\n",
     "02-文献/01-筛选记录.md": "# 文献筛选记录\n\n| 文献 ID | 题名 | 访问级别 | 决定 | 理由 |\n| --- | --- | --- | --- | --- |\n",
     "02-文献/转换缓存/00-缓存索引.md": "# Markdown 全文缓存索引\n\n> `paper.md` 是唯一长期全文阅读缓存；原 PDF 是权威原件。\n\n| 题名 | Paper ID | PDF 页数 | 缓存 | OCR/图表风险 |\n| --- | --- | ---: | --- | --- |\n| 暂无 | - | - | - | - |\n",
@@ -38,6 +38,27 @@ ENTRY_STAGE = {
     "discovery": ("S0", "S0 领域扫描与灵感发现"),
     "topic": ("S1", "S1 实践问题与研究问题"),
     "materials": ("S0", "材料盘点与阶段识别"),
+}
+
+IDEA_DEFAULTS = {
+    "discovery": {
+        "idea_mode": "discovery",
+        "idea_maturity": "broad_interest",
+        "idea_status": "exploring",
+        "material_status": "待补充",
+    },
+    "topic": {
+        "idea_mode": "refinement",
+        "idea_maturity": "tentative_topic",
+        "idea_status": "refining",
+        "material_status": "待补充",
+    },
+    "materials": {
+        "idea_mode": "discovery",
+        "idea_maturity": "broad_interest",
+        "idea_status": "not_started",
+        "material_status": "待核对（不预判已有/可获取/需新增）",
+    },
 }
 
 
@@ -63,6 +84,7 @@ def main() -> int:
     root = args.project_dir.expanduser().resolve()
     title = args.title or root.name
     current_stage, stage_label = ENTRY_STAGE[args.entry_mode]
+    idea_defaults = IDEA_DEFAULTS[args.entry_mode]
 
     if root.exists() and any(root.iterdir()) and not args.allow_existing:
         print(
@@ -91,6 +113,10 @@ def main() -> int:
         text = text.replace("{{CURRENT_STAGE}}", current_stage)
         text = text.replace("{{STAGE_LABEL}}", stage_label)
         text = text.replace("{{DATE}}", date.today().isoformat())
+        text = text.replace("{{IDEA_MODE}}", idea_defaults["idea_mode"])
+        text = text.replace("{{IDEA_MATURITY}}", idea_defaults["idea_maturity"])
+        text = text.replace("{{IDEA_STATUS}}", idea_defaults["idea_status"])
+        text = text.replace("{{MATERIAL_STATUS}}", idea_defaults["material_status"])
         destination.write_text(text, encoding="utf-8")
         created.append(destination)
 

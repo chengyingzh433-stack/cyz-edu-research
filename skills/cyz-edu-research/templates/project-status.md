@@ -2,6 +2,15 @@
 cyz_edu_research_project: true
 project_title: "{{PROJECT_TITLE}}"
 entry_mode: "{{ENTRY_MODE}}"
+workflow_schema: 2
+idea_mode: "{{IDEA_MODE}}"
+idea_maturity: "{{IDEA_MATURITY}}"
+idea_status: "{{IDEA_STATUS}}"
+idea_revision: 1
+idea_workspace: "01-研究起点与问题.md"
+current_decision: ""
+current_evidence: ""
+handoff_path: "01-研究起点与问题.md#交接区"
 current_stage: "{{CURRENT_STAGE}}"
 gate_status: "pending"
 academic_language_pass_status: "not_started"
@@ -15,6 +24,8 @@ last_updated: "{{DATE}}"
 - 阶段：`{{STAGE_LABEL}}`
 - 状态：`pending`
 - 当前任务：确认项目起点和下一项工作
+- Idea 状态：`{{IDEA_STATUS}}`
+- Idea 修订：`1`
 
 ## 已确认研究问题
 
