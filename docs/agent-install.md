@@ -2,6 +2,8 @@
 
 本指南供能访问本机文件、运行 Python，并得到用户安装授权的 agent 使用。仓库和附件已公开，浏览器或 HTTP 下载无需 GitHub 凭据。先完成检查，再报告哪部分可用。
 
+这里安装的是工作流 Skill，不是桌面工作台。主工作流可以独立使用；如果用户要 Windows 窗口和快捷方式，先看 [工作台与工作流的依赖说明](workbench-and-workflow.md)。工作台 0.1.0 的安装版自带固定的主工作流 0.3.0，不必重复安装；仍须核实 Codex 是否识别该 Skill，并单独检查语言依赖、登录和 PDF 解析环境。
+
 ## 1. 固定要安装的版本
 
 - 仓库：`https://github.com/chengyingzh433-stack/cyz-edu-research`
