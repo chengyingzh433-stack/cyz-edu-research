@@ -38,6 +38,8 @@ The package re-expresses general research-workflow ideas in new education-specif
 - English language editing: locally installed `humanizer` (MIT; upstream blader/humanizer).
 - PDF parsing: locally installed `mineru` skill targeting the user's MinerU Desk; the desktop runtime/models retain their own notices and are not redistributed in this workbench.
 
+The release does not include the MinerU wrapper, MinerU Desk, model weights, personal PDFs, or generated parsing data because no redistributable wrapper license was confirmed. Environment-specific installation paths are also excluded from the public dependency lock.
+
 The workbench provides academic constraints and a cache adapter around these dependencies. Retained qu-ai-wei-derived material is acknowledged below for provenance; this is not a current invocation dependency.
 
 ## qu-ai-wei (Historical Adaptation)

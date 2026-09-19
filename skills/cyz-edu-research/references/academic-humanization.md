@@ -18,7 +18,7 @@ Academic constraints govern this integration: preserve quotations, reference pun
 
 Record language, skill name, resolved SKILL.md path, repository (Chinese: https://github.com/syw2039/humanizer-zh), version when available and SHA-256 of the loaded skill. For mixed work record each scope separately. A dependency update does not retroactively certify earlier text.
 
-The repository-level `dependencies.lock.json` is the installation evidence for the supported Chinese and English routes. It records both observed installation roots (`C:\Users\W\.codex\skills` and `C:\Users\W\.agents\skills`), declared version or explicit unknown status, upstream and license evidence status, and a recomputable canonical directory hash. Runtime resolution remains strict: `zh` resolves only `humanizer-zh`; `en` resolves only `humanizer`. A missing required dependency is a blocking failure, and `qu-ai-wei` is never a substitute.
+The repository-level `dependencies.lock.json` is the local installation evidence for the supported Chinese and English routes. The public release copy removes environment-specific paths while retaining declared versions or explicit unknown status, upstream and license evidence status. Runtime resolution remains strict: `zh` resolves only `humanizer-zh`; `en` resolves only `humanizer`. A missing required dependency is a blocking failure, and `qu-ai-wei` is never a substitute.
 
 ## Position In The Workflow
 
