@@ -1,6 +1,6 @@
 # 给 agent 的安装与使用指南：0.3.0
 
-本指南供能访问本机文件、运行 Python，并得到用户安装授权的 agent 使用。先完成检查，再报告哪部分可用。私有仓库认证失败时，请用户完成 GitHub 登录或提供已经下载的文件；不要索要在聊天里粘贴密码或令牌。
+本指南供能访问本机文件、运行 Python，并得到用户安装授权的 agent 使用。仓库和附件已公开，浏览器或 HTTP 下载无需 GitHub 凭据。先完成检查，再报告哪部分可用。
 
 ## 1. 固定要安装的版本
 
@@ -12,14 +12,14 @@
 
 0.3.0 的安装器在该提交的 `scripts/install_skill.py`，它还需要同目录的 `verify_release.py`。它们没有放进 Skill ZIP。下载该 tag 的源码包，或取出这两个脚本；不要把整个源码仓库当作单个 Skill 安装。
 
-如果 GitHub CLI 已安装且登录账号有仓库权限，可在新的工作目录下载附件：
+如果 GitHub CLI 已安装并可正常使用，可在新的工作目录下载附件：
 
 ```powershell
 gh release download 0.3.0 --repo chengyingzh433-stack/cyz-edu-research --dir dist --pattern cyz-edu-research-0.3.0.zip --pattern SHA256SUMS.txt --pattern acceptance-report.md
 if ($LASTEXITCODE -ne 0) { throw '下载失败，请核对认证和仓库权限' }
 ```
 
-没有 GitHub CLI 时，使用已认证的 GitHub 页面或可用连接器下载。不要为了安装而上传研究资料。下载过程中如果 Git 被配置为把 GitHub 重定向到其他域名，先说明这个配置；认证凭据应只交给正确的 GitHub 认证端点。
+没有 GitHub CLI 时，使用公开的 GitHub 页面或 HTTP 下载附件即可。不要为了安装而上传研究资料。下载过程中如果 Git 被配置为把 GitHub 重定向到其他域名，先说明这个配置；公开下载不需要向中转域名提交凭据。
 
 ## 2. 校验、安装、验证
 
