@@ -259,6 +259,64 @@ class CacheIntegrityTests(unittest.TestCase):
         self.assertNotIn("origin.pdf", json.dumps(source_map, ensure_ascii=False))
         self.assertIn("## PDF 第 2 页", markdown)
 
+    def test_m01_empty_real_shaped_blocks_are_preserved_as_visual_uncertainty(self):
+        source, task_json, output, _ = self.copied_desk_fixture()
+        task = json.loads(task_json.read_text(encoding="utf-8"))
+        markdown_path = Path(task["markdown"])
+        content_path = markdown_path.parent / f"{markdown_path.stem}_content_list.json"
+        content = json.loads(content_path.read_text(encoding="utf-8"))
+        content.extend(
+            [
+                {"type": "header", "page_idx": 0, "bbox": [1, 2, 3, 4]},
+                {"type": "text", "page_idx": 1, "bbox": [5, 6, 7, 8]},
+            ]
+        )
+        content_path.write_text(json.dumps(content), encoding="utf-8")
+
+        markdown, source_map, _ = self.import_fixture(source, task_json, output)
+
+        empty_blocks = [
+            block
+            for page in source_map["pages"]
+            for block in page["blocks"]
+            if block.get("empty_content") is True
+        ]
+        self.assertEqual(["header", "text"], [block["type"] for block in empty_blocks])
+        self.assertTrue(
+            all(
+                block["confidence"] == "missing_content_requires_visual_check"
+                for block in empty_blocks
+            )
+        )
+        self.assertEqual(2, markdown.count("MinerU 返回空内容块"))
+
+    def test_m01_real_shaped_chart_block_keeps_image_caption_and_footnote(self):
+        source, task_json, output, _ = self.copied_desk_fixture()
+        task = json.loads(task_json.read_text(encoding="utf-8"))
+        markdown_path = Path(task["markdown"])
+        content_path = markdown_path.parent / f"{markdown_path.stem}_content_list.json"
+        content = json.loads(content_path.read_text(encoding="utf-8"))
+        content.append(
+            {
+                "type": "chart",
+                "page_idx": 0,
+                "bbox": [1, 2, 3, 4],
+                "content": "Chart content",
+                "chart_caption": ["Chart caption"],
+                "chart_footnote": ["Chart footnote"],
+                "img_path": "images/figure.png",
+            }
+        )
+        content_path.write_text(json.dumps(content), encoding="utf-8")
+
+        markdown, source_map, stats = self.import_fixture(source, task_json, output)
+
+        self.assertIn("Chart content", markdown)
+        self.assertIn("Chart caption", markdown)
+        self.assertIn("Chart footnote", markdown)
+        self.assertEqual(2, stats["embedded_images"])
+        self.assertEqual("chart", source_map["pages"][0]["blocks"][-1]["type"])
+
     def test_m02_cache_first_reuses_valid_cache_without_desk_discovery(self):
         source_hash = hashlib.sha256(b"source").hexdigest()
         seed = self.temp_root / "cache-seed"

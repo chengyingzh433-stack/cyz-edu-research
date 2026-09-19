@@ -134,7 +134,7 @@ def import_task(task_json, pdf, output, pdf_hash, page_count, title, generated):
         raise ValueError('MinerU page map does not cover original PDF exactly')
     if not isinstance(content, list) or not content:
         raise ValueError('Empty or unsupported MinerU content list')
-    known = {'text', 'equation', 'image', 'table', 'list', 'discarded', 'header', 'footer', 'page_number'}
+    known = {'text', 'equation', 'image', 'table', 'chart', 'list', 'discarded', 'header', 'footer', 'page_number'}
     for block in content:
         if not isinstance(block, dict) or block.get('type') not in known:
             raise ValueError('Unsupported MinerU block: retain raw output and use explicit fallback')
@@ -191,9 +191,14 @@ def import_task(task_json, pdf, output, pdf_hash, page_count, title, generated):
                 parts.append('$$\n' + strings(block.get('text')) + '\n$$')
             elif kind == 'list':
                 parts.append(strings(block.get('list_items')))
+            elif kind == 'chart':
+                parts.append(strings(block.get('content')))
             else:
                 parts.append(strings(block.get('text')))
-            for field in ('image_caption', 'table_caption', 'table_body', 'image_footnote', 'table_footnote'):
+            for field in (
+                'image_caption', 'table_caption', 'table_body', 'image_footnote',
+                'table_footnote', 'chart_caption', 'chart_footnote'
+            ):
                 if field in block:
                     parts.append(strings(block[field]))
             text = '\n\n'.join(p for p in parts if p)
@@ -204,6 +209,17 @@ def import_task(task_json, pdf, output, pdf_hash, page_count, title, generated):
             anchor = f'S{count:04d}'
             record['blocks'].append({'id': anchor, 'type': kind, 'bbox': block.get('bbox'),
                 'mineru_item_index': item_index, 'extraction': 'mineru_desk_local', 'confidence': 'requires_visual_check'})
+            if not text.strip() and not block.get('img_path'):
+                record['blocks'][-1].update({
+                    'empty_content': True,
+                    'confidence': 'missing_content_requires_visual_check',
+                })
+                lines += [
+                    f'<a id="{anchor}"></a>',
+                    f'> [MinerU 返回空内容块 {anchor}（{kind}）；需回原 PDF 目视核验。]',
+                    '',
+                ]
+                continue
             lines += [f'<a id="{anchor}"></a>', text, '']
             if block.get('img_path'):
                 image = contained(md.parent / block['img_path'], md.parent)
@@ -214,8 +230,6 @@ def import_task(task_json, pdf, output, pdf_hash, page_count, title, generated):
                 figure = f'F{images:04d}'
                 lines += [f'<a id="{figure}"></a>', f'![PDF 第 {number} 页 {figure}]({relative})', '']
                 record['figures'].append({'id': figure, 'asset': relative, 'extraction': 'mineru_desk_local'})
-            elif not text.strip():
-                raise ValueError(f'MinerU block has no usable content: {kind}')
         record['text_characters'] = chars
         record['needs_ocr'] = chars < 40
         if chars < 40:
