@@ -43,6 +43,12 @@ Rollback replaces only the managed `cyz-edu-research` installation and records t
 Create and validate a disposable project before using the installation with real work:
 
 ```powershell
-py -3.11 C:/path/to/skills/cyz-edu-research/scripts/init_project.py C:/temp/cyz-check --mode discovery
+py -3.11 C:/path/to/skills/cyz-edu-research/scripts/init_project.py C:/temp/cyz-check --entry-mode discovery
 py -3.11 C:/path/to/skills/cyz-edu-research/scripts/validate_project.py C:/temp/cyz-check
 ```
+
+## 0.3.0 documentation and language-check notes
+
+The installer and verifier are in the source archive, not the Skill ZIP. The original packaged guide incorrectly uses `--mode`; use `--entry-mode` as shown above.
+
+For a beginner walkthrough and agent setup, see [agent-install.md](https://github.com/chengyingzh433-stack/cyz-edu-research/blob/main/docs/agent-install.md). Version 0.3.0 language checks require an explicit `--dependency-lock` pointing to the supplemental verified lock described there. The packaged minimal lock omits required validation fields, and the script's default path does not match a standalone Skill installation.

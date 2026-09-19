@@ -2,6 +2,8 @@
 
 ## Current result
 
+Post-release documentation audit (2026-09-19): the counts below describe the original test runs. A fresh-install language-dependency check was subsequently found to require an explicit supplemental lock; the packaged minimal lock and default lookup path are insufficient. See [the agent guide](https://github.com/chengyingzh433-stack/cyz-edu-research/blob/main/docs/agent-install.md#4-语言依赖与-030-兼容处理). The published ZIP is unchanged; this limitation must accompany the historical pass counts.
+
 - WF01-WF12: **12/12 passed** on 2026-09-19.
 - Scenario fixtures: **24/24 passed** (`I01-I14`, `H01-H04`, `M01-M06`).
 - Deterministic unit suite: **96/96 passed** at candidate commit `132c213ec83b9ab46616504296fc5d43c35a80c6`, then **96/96 passed** again after verified local synchronization.

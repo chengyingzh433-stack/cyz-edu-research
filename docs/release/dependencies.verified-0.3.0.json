@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "languageRouting": {"zh": "humanizer-zh", "en": "humanizer"},
+  "canonicalDirectoryHashAlgorithm": "relativePath<TAB>fileSha256<TAB>byteLength<LF>, sorted by relativePath, excluding __pycache__, *.pyc, and *.pyo; SHA-256 of UTF-8 bytes",
+  "dependencies": [
+    {
+      "name": "humanizer-zh",
+      "version": null,
+      "versionStatus": "unknown",
+      "versionEvidence": null,
+      "upstream": "https://github.com/syw2039/humanizer-zh.git",
+      "sourceStatus": "declared-in-README",
+      "license": "MIT",
+      "licenseStatus": "declared-in-LICENSE",
+      "installations": [{"fileCount": 9, "bytes": 24426, "directorySha256": "4fd457ac06688f55d8cd6921dde5ae3b105f371696a4673d956a038c435b3f9f"}]
+    },
+    {
+      "name": "humanizer",
+      "version": "2.9.1",
+      "versionStatus": "declared",
+      "versionEvidence": "SKILL.md metadata.version",
+      "upstream": "https://github.com/blader/humanizer.git",
+      "sourceStatus": "declared-in-README",
+      "license": "MIT",
+      "licenseStatus": "declared-in-SKILL-and-LICENSE",
+      "installations": [{"fileCount": 9, "bytes": 51373, "directorySha256": "ca43b838a44ad4819f3fd60f10c2ed2ef9b6ced517929be2dcca9dbc41a9e892"}]
+    }
+  ]
+}
