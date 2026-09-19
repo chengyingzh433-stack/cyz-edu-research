@@ -1,0 +1,70 @@
+{
+  "scenario_id": "M01",
+  "status": "passed",
+  "recorded_at": "2026-09-19",
+  "commit": "274136ecba7a72f978cfc64b0a20d4a879939aef",
+  "runtime": {
+    "desk_version": "0.3.1",
+    "mineru_version": "3.4.5",
+    "hardware": "cpu",
+    "provider": "local",
+    "backend": "pipeline",
+    "offline": true,
+    "cloud_or_remote_endpoint_used": false
+  },
+  "source": {
+    "basename": "Ch1-物理教学设计概述.pdf",
+    "bytes": 2183148,
+    "pages": 15,
+    "sha256_before": "003ffc10cd8c4ce53809efa0f6c2f5741958b4c0ec04513ad471ff350752b086",
+    "sha256_after": "003ffc10cd8c4ce53809efa0f6c2f5741958b4c0ec04513ad471ff350752b086",
+    "original_preserved": true
+  },
+  "sample_gate": {
+    "pages": [1, 2, 3],
+    "initial_task_id": "30a2f1ce-f435-4faa-8e3c-8171c7d11326",
+    "initial_status": "failed",
+    "retry_task_id": "499f087e-fea7-482f-8657-7019553cd9c6",
+    "retry_status": "completed",
+    "text_correspondence": true,
+    "image_correspondence": true
+  },
+  "full_task": {
+    "task_id": "058f1ecd-3b75-4278-9632-92b127196a18",
+    "status": "completed",
+    "base_task_id": "058f1ecd-3b75-4278-9632-92b127196a18",
+    "lineage_task_ids": ["058f1ecd-3b75-4278-9632-92b127196a18"],
+    "page_count": 15,
+    "block_count": 567,
+    "figure_count": 81,
+    "empty_blocks_flagged_for_visual_review": 16
+  },
+  "reuse_probe": {
+    "task_id": "bd403df0-c5c8-43d2-9de2-3d1f788ddbec",
+    "status": "reused",
+    "base_task_id": "058f1ecd-3b75-4278-9632-92b127196a18",
+    "lineage_task_ids": [
+      "bd403df0-c5c8-43d2-9de2-3d1f788ddbec",
+      "058f1ecd-3b75-4278-9632-92b127196a18"
+    ],
+    "workflow_cache_first_reused": true
+  },
+  "manual_review": {
+    "pdf_pages": [1, 2, 3, 8, 15],
+    "text": "passed",
+    "images": "passed",
+    "tables": "not_applicable_no_table_blocks",
+    "formulae": "not_applicable_no_equation_or_math_markers"
+  },
+  "resources": {
+    "paper_md_sha256": "2d6a3f444ebfbd61e9d10cff51b023fe69a875d9f87799e149f5b79781f15231",
+    "source_map_sha256": "423df47a8fcb1ec76f82b6d4fe3ef94a520793b4ca2c1b22e4e143c32249971f",
+    "conversion_manifest_sha256": "f52faf8c6e82e1d42b0a391db0d98d5ca90cc138135a62a2b4a24987e5d32693",
+    "cache_tree_sha256": "245f7bdd638c8dd63802d957d2023d82be09a863160f0555bca13c8b8b10c00f"
+  },
+  "privacy": {
+    "contains_absolute_user_path": false,
+    "contains_source_text_or_logs": false,
+    "contains_model_root_token_or_connection_info": false
+  }
+}

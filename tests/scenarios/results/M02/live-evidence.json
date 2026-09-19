@@ -1,0 +1,69 @@
+{
+  "scenario_id": "M02",
+  "status": "passed",
+  "recorded_at": "2026-09-19",
+  "commit": "274136ecba7a72f978cfc64b0a20d4a879939aef",
+  "runtime": {
+    "desk_version": "0.3.1",
+    "mineru_version": "3.4.5",
+    "hardware": "cpu",
+    "provider": "local",
+    "backend": "pipeline",
+    "offline": true,
+    "cloud_or_remote_endpoint_used": false
+  },
+  "source": {
+    "basename": "Ch2-1-概念教学-本科-2023.pdf",
+    "bytes": 2551966,
+    "pages": 17,
+    "sha256_before": "4fad697b8408f385425e3bcb12dc577207e42c7c828bd428ad989c626c4bc485",
+    "sha256_after": "4fad697b8408f385425e3bcb12dc577207e42c7c828bd428ad989c626c4bc485",
+    "original_preserved": true
+  },
+  "sample_gate": {
+    "pages": [1, 2, 3],
+    "task_id": "9c401b2f-300d-4c2a-85ae-5f4d0527acae",
+    "status": "completed",
+    "text_correspondence": true,
+    "image_correspondence": true
+  },
+  "full_task": {
+    "task_id": "6b62c36f-b9ce-430e-bf50-93041ae2170b",
+    "status": "completed",
+    "base_task_id": "6b62c36f-b9ce-430e-bf50-93041ae2170b",
+    "lineage_task_ids": ["6b62c36f-b9ce-430e-bf50-93041ae2170b"],
+    "page_count": 17,
+    "block_count": 605,
+    "figure_count": 98,
+    "table_block_count": 5,
+    "chart_block_count": 1,
+    "empty_blocks_flagged_for_visual_review": 16
+  },
+  "resume_probe": {
+    "saved_task_id": "6b62c36f-b9ce-430e-bf50-93041ae2170b",
+    "full_task_count_before_resume": 1,
+    "full_task_count_after_resume": 1,
+    "same_task_id_after_resume": true,
+    "duplicate_submission": false,
+    "workflow_cache_first_reused": true
+  },
+  "manual_review": {
+    "pdf_pages": [1, 2, 3, 4, 12, 16, 17],
+    "text": "passed",
+    "images": "passed",
+    "tables": "passed_pages_4_and_16",
+    "formulae": "passed_pages_12_and_16",
+    "chart": "passed_page_4"
+  },
+  "resources": {
+    "paper_md_sha256": "242f4fe4688a04b967b6711cafcf4f93717590b233beaea54a9d869ae834121d",
+    "source_map_sha256": "a11c77c4267becf009bd05ea4f1e8fd2605ea582321033e1bce850744aee0309",
+    "conversion_manifest_sha256": "5430217622848de2676080f5f0199dd4f37f0d32d7eee3d7a574857aff89d571",
+    "cache_tree_sha256": "92c63367da4a866b1c413d0d9eb2a3ff8098c90bcaa5962e1f6c31e6ab21a5b3"
+  },
+  "privacy": {
+    "contains_absolute_user_path": false,
+    "contains_source_text_or_logs": false,
+    "contains_model_root_token_or_connection_info": false
+  }
+}
