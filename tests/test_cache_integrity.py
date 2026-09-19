@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import importlib.util
 import io
@@ -696,7 +697,9 @@ class CacheIntegrityTests(unittest.TestCase):
         def fake_run(command, **kwargs):
             nonlocal task_queries
             args = [str(value) for value in command]
-            if args[-3:] == ["request", "GET", "state"]:
+            self.assertEqual("-EncodedCommand", args[-2])
+            script = base64.b64decode(args[-1]).decode("utf-16le")
+            if "'request' 'GET' 'state'" in script:
                 payload = {
                     "paused": False,
                     "settings": {
@@ -705,12 +708,12 @@ class CacheIntegrityTests(unittest.TestCase):
                         "modelRoot": "models",
                     },
                 }
-            elif len(args) >= 2 and args[-2] == "submit":
+            elif "'submit'" in script:
                 submissions.append(args)
-                submitted = json.loads(Path(args[-1]).read_text(encoding="utf-8"))
+                submitted = json.loads(request_path.read_text(encoding="utf-8"))
                 self.assertNotIn("runtimeSettings", submitted)
                 payload = [{"id": "task-cli"}]
-            elif args[-3:] == ["request", "GET", "tasks/task-cli"]:
+            elif "'request' 'GET' 'tasks/task-cli'" in script:
                 task_queries += 1
                 payload = (
                     {"id": "task-cli", "status": "running"}
@@ -743,6 +746,39 @@ class CacheIntegrityTests(unittest.TestCase):
         exported = json.loads(output_path.read_text(encoding="utf-8"))
         self.assertEqual("task-cli", exported["id"])
         self.assertEqual("modelscope", exported["runtimeSettings"]["modelSource"])
+
+    def test_m05_task_query_preserves_failed_task_json_from_desk_exit_two(self):
+        desk_root = self.temp_root / "failed-task-desk"
+        desk_root.mkdir()
+        (desk_root / "Codex.ps1").write_text("# fixture\n", encoding="utf-8")
+        failed_task = {
+            "id": "task-failed",
+            "status": "failed",
+            "error": "local conversion failed",
+        }
+        completed = subprocess.CompletedProcess(
+            ["powershell.exe"],
+            2,
+            stdout=json.dumps(failed_task),
+            stderr="",
+        )
+        with mock.patch.object(EXPORT_TASK.subprocess, "run", return_value=completed):
+            result = EXPORT_TASK.run_codex(
+                desk_root, "request", "GET", "tasks/task-failed"
+            )
+        self.assertEqual(failed_task, result)
+
+        api_error = subprocess.CompletedProcess(
+            ["powershell.exe"],
+            1,
+            stdout=json.dumps({"error": "service unavailable"}),
+            stderr="",
+        )
+        with mock.patch.object(EXPORT_TASK.subprocess, "run", return_value=api_error):
+            with self.assertRaises(RuntimeError):
+                EXPORT_TASK.run_codex(
+                    desk_root, "request", "GET", "tasks/task-failed"
+                )
 
     def test_m01_exporter_hashes_original_and_validates_every_lineage_node(self):
         source, _, _, task = self.copied_desk_fixture(status="reused")

@@ -185,9 +185,19 @@ def run_codex(desk_root, *arguments):
     cli = Path(desk_root).resolve() / 'Codex.ps1'
     if not cli.is_file():
         raise ValueError('Codex.ps1 not found')
+    values = [str(cli), *[str(value) for value in arguments]]
+    if any('\x00' in value or '\r' in value or '\n' in value for value in values):
+        raise ValueError('MinerU Desk arguments contain unsupported control characters')
+    literals = ["'" + value.replace("'", "''") + "'" for value in values]
+    script = (
+        '[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); & '
+        + ' '.join(literals)
+        + '; exit $LASTEXITCODE'
+    )
+    encoded = base64.b64encode(script.encode('utf-16le')).decode('ascii')
     command = [
         'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass',
-        '-File', str(cli), *[str(value) for value in arguments],
+        '-EncodedCommand', encoded,
     ]
     result = subprocess.run(
         command,
@@ -197,12 +207,22 @@ def run_codex(desk_root, *arguments):
         timeout=150,
         creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0),
     )
-    if result.returncode:
-        raise RuntimeError('MinerU Desk command failed; inspect local diagnostics')
     try:
-        return json.loads(result.stdout)
+        payload = json.loads(result.stdout)
     except json.JSONDecodeError as exc:
         raise RuntimeError('MinerU Desk returned invalid JSON') from exc
+    failed_task_query = (
+        result.returncode == 2
+        and tuple(str(value) for value in arguments[:2]) == ('request', 'GET')
+        and len(arguments) == 3
+        and str(arguments[2]).startswith('tasks/')
+        and isinstance(payload, dict)
+        and payload.get('status') == 'failed'
+        and isinstance(payload.get('id'), str)
+    )
+    if result.returncode and not failed_task_query:
+        raise RuntimeError('MinerU Desk command failed; inspect local diagnostics')
+    return payload
 
 
 def validate_cli_request(request):
@@ -254,17 +274,7 @@ def export(desk_root, task_id, fetch_task=None):
             raise ValueError('Invalid task ID')
         if fetch_task is not None:
             return fetch_task(identifier)
-        literal = str(cli).replace("'", "''")
-        command = ("[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); "
-                   f"& '{literal}' request GET 'tasks/{identifier}'; exit $LASTEXITCODE")
-        encoded = base64.b64encode(command.encode('utf-16le')).decode('ascii')
-        result = subprocess.run(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass',
-            '-EncodedCommand', encoded],
-            capture_output=True, text=True, encoding='utf-8', timeout=150,
-            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-        if result.returncode:
-            raise RuntimeError('Desk task query failed; inspect the local service diagnostics')
-        return json.loads(result.stdout)
+        return run_codex(desk_root, 'request', 'GET', f'tasks/{identifier}')
 
     task = get(task_id)
     if task.get('status') not in ('completed', 'reused'):
