@@ -1,0 +1,3 @@
+# Results summary
+
+In today's rapidly evolving educational landscape, classroom questioning serves as a pivotal and crucial instructional strategy, highlighting its enduring importance for meaningful learning. This study observed 48 grade 11 students for 8 weeks. The findings showed that questioning frequency was positively correlated with concept-test scores (r = 0.42, p = 0.003), but the association does not establish causation. Additionally, it is important to note that the sample came from one school, meaning that the findings should be generalized to other regions with caution. In conclusion, the study showcases the potential value of classroom questioning and provides valuable insights for future teaching practice.

@@ -104,6 +104,9 @@ def collect_package_files(repo_root: Path, version: str) -> dict[str, bytes]:
         "docs/acceptance/workflow-acceptance.md": (
             repo_root / "docs" / "acceptance" / "workflow-acceptance.md"
         ),
+        "docs/acceptance/evidence-index.json": (
+            repo_root / "docs" / "acceptance" / "evidence-index.json"
+        ),
     }
     for relative, source_path in overlays.items():
         if not source_path.is_file():

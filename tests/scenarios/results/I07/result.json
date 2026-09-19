@@ -1,0 +1,26 @@
+{
+  "resultContractVersion": 1,
+  "scenarioId": "I07",
+  "recordedAt": "2026-09-19T08:54:00+08:00",
+  "status": "observed",
+  "observations": {
+    "candidateDisposition": "reframed_mechanism_revision_2",
+    "decisionReasonCount": 4,
+    "titleOnlyRevisionCount": 0,
+    "deletedHistoryEntryCount": 0,
+    "ideaRevisionDelta": 1,
+    "counterExplanationCount": 4,
+    "failureConditionCount": 3,
+    "maxQuestionsPerTurn": 1,
+    "prematureWritingTransitionCount": 0,
+    "ideaStatus": "needs_verification",
+    "executionMode": "primary-agent-single-thread-controlled-live-conversation",
+    "independentModelSessionUsed": false,
+    "subagentUsed": false,
+    "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6"
+  },
+  "sourceEvidence": [
+    "results/I07/artifacts/live-conversation.md",
+    "results/I07/artifacts/sources.json"
+  ]
+}

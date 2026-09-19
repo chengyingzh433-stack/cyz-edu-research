@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "reviewType": "manual-semantic-regression",
+  "baselineSha256": "2b73b5d176b334e60a09d0fcd1e848824b4e97daf5f09bfa128c2a40b1dd4d25",
+  "outputSha256": "10840e7099d10d009f7e3b7a716fdcf9da775cc8648ed65cf1e4d4c236f0d93d",
+  "issue": "bounded_academic_language_revision",
+  "disposition": "accepted",
+  "reason": "The sample, duration, correlation direction, statistics, causal limit, and transfer boundary are unchanged; only generic framing, promotional wording, and repetition were removed."
+}

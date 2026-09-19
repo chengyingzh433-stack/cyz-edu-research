@@ -1,0 +1,537 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-19T09:10:00+08:00",
+  "releaseVersion": "0.3.0",
+  "candidateCommit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+  "environment": {
+    "os": "Windows NT 10.0.26200.0",
+    "python": "3.11.9",
+    "git": "2.54.0.windows.1",
+    "codexCli": "0.153.4",
+    "mineruDesk": "0.3.1",
+    "mineru": "3.4.5",
+    "hardware": "CPU",
+    "timezone": "Asia/Shanghai"
+  },
+  "executionPolicy": {
+    "subagentsUsed": false,
+    "goalModeUsed": false,
+    "ideaSessions": "primary-agent single-thread controlled live conversations with scripted user turns"
+  },
+  "scenarioRecords": [
+    {
+      "id": "I01",
+      "expected": "Broad domain enters discovery and produces bounded candidates.",
+      "actual": "Replay evaluator passed discovery mode, three bounded candidates, and zero forced-problem or gap claims.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 tests/scenarios/run_skill_scenarios.py --skill skills/cyz-edu-research --ids I01-I14 --mode candidate --inputs <acceptance-inputs> --output <acceptance-output>",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/I01-discovery-domain.json"
+      ]
+    },
+    {
+      "id": "I02",
+      "expected": "Reuse seed materials before supplementary search and state a stop condition.",
+      "actual": "Controlled live conversation reused two seed materials, produced three bounded directions, and stopped before targeted validation.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 tests/scenarios/run_skill_scenarios.py --skill skills/cyz-edu-research --ids I01-I14 --mode candidate --inputs <acceptance-inputs> --output <acceptance-output>",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/results/I02/result.json",
+        "tests/scenarios/results/I02/artifacts/live-conversation.md",
+        "tests/scenarios/results/I02/artifacts/sources.json"
+      ]
+    },
+    {
+      "id": "I03",
+      "expected": "A vague existing idea enters refinement with at most one consequential question.",
+      "actual": "Replay evaluator passed refinement, one-question maximum, no whole-field rescan, and no premature writing.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 tests/scenarios/run_skill_scenarios.py --skill skills/cyz-edu-research --ids I01-I14 --mode candidate --inputs <acceptance-inputs> --output <acceptance-output>",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/I03-refine-vague-idea.json"
+      ]
+    },
+    {
+      "id": "I04",
+      "expected": "Review a complete plan for alternatives and failure conditions before writing.",
+      "actual": "Replay evaluator passed with three alternative explanations, three failure conditions, and no format-only approval.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 tests/scenarios/run_skill_scenarios.py --skill skills/cyz-edu-research --ids I01-I14 --mode candidate --inputs <acceptance-inputs> --output <acceptance-output>",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/I04-review-complete-plan.json"
+      ]
+    },
+    {
+      "id": "I05",
+      "expected": "An unknown answer receives grounded options without an assumed user decision.",
+      "actual": "Replay evaluator passed one grounded recommendation, two options, and zero assumed decisions or multi-question turns.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 tests/scenarios/run_skill_scenarios.py --skill skills/cyz-edu-research --ids I01-I14 --mode candidate --inputs <acceptance-inputs> --output <acceptance-output>",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/I05-beginner-unknown.json"
+      ]
+    },
+    {
+      "id": "I06",
+      "expected": "Separate existing, obtainable, and newly collected materials and expose burden.",
+      "actual": "Replay evaluator passed with existing and new-material counts present and zero misclassification or hidden burden.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 tests/scenarios/run_skill_scenarios.py --skill skills/cyz-edu-research --ids I01-I14 --mode candidate --inputs <acceptance-inputs> --output <acceptance-output>",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/I06-material-paths.json"
+      ]
+    },
+    {
+      "id": "I07",
+      "expected": "Near-duplicate evidence triggers substantive reframing or rejection, not a title-only edit.",
+      "actual": "Controlled live conversation preserved revision 1 and reframed revision 2 around mechanism with counterevidence and claim limits.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 tests/scenarios/run_skill_scenarios.py --skill skills/cyz-edu-research --ids I01-I14 --mode candidate --inputs <acceptance-inputs> --output <acceptance-output>",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/results/I07/result.json",
+        "tests/scenarios/results/I07/artifacts/live-conversation.md",
+        "tests/scenarios/results/I07/artifacts/sources.json"
+      ]
+    },
+    {
+      "id": "I08",
+      "expected": "Abstract-only or offline evidence stays within access limits and cannot become ready.",
+      "actual": "Replay evaluator passed with zero full-text or gap claims and status needs_verification.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 tests/scenarios/run_skill_scenarios.py --skill skills/cyz-edu-research --ids I01-I14 --mode candidate --inputs <acceptance-inputs> --output <acceptance-output>",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/I08-summary-only-offline.json"
+      ]
+    },
+    {
+      "id": "I09",
+      "expected": "Qualitative or design questions use a fitting evidence route and mark inapplicable requirements.",
+      "actual": "Replay evaluator passed with an explicit evidence route, two not-applicable items, and no forced quantitative hypothesis.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 tests/scenarios/run_skill_scenarios.py --skill skills/cyz-edu-research --ids I01-I14 --mode candidate --inputs <acceptance-inputs> --output <acceptance-output>",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/I09-qualitative-fit.json"
+      ]
+    },
+    {
+      "id": "I10",
+      "expected": "Resume preserves decision and valid-cache hashes without reconversion.",
+      "actual": "Replay evaluator passed unchanged decision/cache hashes and zero reset or reconversion.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 tests/scenarios/run_skill_scenarios.py --skill skills/cyz-edu-research --ids I01-I14 --mode candidate --inputs <acceptance-inputs> --output <acceptance-output>",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/I10-resume-project.json"
+      ]
+    },
+    {
+      "id": "I11",
+      "expected": "Contradictory evidence increments revision, preserves history, and marks downstream review.",
+      "actual": "Replay evaluator passed revision delta 1, preserved history, two review markers, and zero stale-ready artifacts.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 tests/scenarios/run_skill_scenarios.py --skill skills/cyz-edu-research --ids I01-I14 --mode candidate --inputs <acceptance-inputs> --output <acceptance-output>",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/I11-evidence-reversal.json"
+      ]
+    },
+    {
+      "id": "I12",
+      "expected": "Idea handoff leaves S2-S5 at their actual status and does not copy PDF bodies.",
+      "actual": "Replay evaluator passed unchanged stage states and zero auto-pass or PDF-body copying.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 tests/scenarios/run_skill_scenarios.py --skill skills/cyz-edu-research --ids I01-I14 --mode candidate --inputs <acceptance-inputs> --output <acceptance-output>",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/I12-handoff-boundaries.json"
+      ]
+    },
+    {
+      "id": "I13",
+      "expected": "Legacy migration preserves bytes, is idempotent, and new projects use schema 2.",
+      "actual": "Replay evaluator and lifecycle tests passed unchanged legacy hashes, zero second-run changes, and schema 2.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 tests/scenarios/run_skill_scenarios.py --skill skills/cyz-edu-research --ids I01-I14 --mode candidate --inputs <acceptance-inputs> --output <acceptance-output>",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/I13-legacy-upgrade.json",
+        "tests/test_project_lifecycle.py"
+      ]
+    },
+    {
+      "id": "I14",
+      "expected": "Two installs are identical; links and PDF/language regressions pass without pycache.",
+      "actual": "Two fresh installed trees matched across 40 files at tree hash ca60ca3d…40b1; both initialized and validated projects.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 tests/scenarios/run_skill_scenarios.py --skill skills/cyz-edu-research --ids I01-I14 --mode candidate --inputs <acceptance-inputs> --output <acceptance-output>",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/I14-install-consistency.json",
+        "tests/test_release_package.py"
+      ]
+    },
+    {
+      "id": "H01",
+      "expected": "Chinese and English route to their declared humanizers while preserving separate baselines.",
+      "actual": "Both embedded passes resolved the correct dependency; automated semantic locks and manual regressions passed.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "check_semantic_lock.py BEFORE AFTER --language <zh|en> --manual-review REVIEW --report REPORT",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/results/H01/result.json",
+        "tests/scenarios/results/H01/artifacts/index.json",
+        "tests/scenarios/results/H01/artifacts/semantic-lock-zh.md",
+        "tests/scenarios/results/H01/artifacts/semantic-lock-en.md"
+      ]
+    },
+    {
+      "id": "H02",
+      "expected": "Reject literal changes and correlation-to-causation strengthening.",
+      "actual": "Semantic-lock tests passed all rejection checks, including invalid manual acceptance.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 -m unittest tests.test_semantic_lock -v",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/test_semantic_lock.py"
+      ]
+    },
+    {
+      "id": "H03",
+      "expected": "Missing language dependency fails clearly without qu-ai-wei fallback.",
+      "actual": "Dependency-resolution test returned the expected nonzero diagnostic with zero fallback.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 -m unittest tests.test_semantic_lock -v",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/test_semantic_lock.py"
+      ]
+    },
+    {
+      "id": "H04",
+      "expected": "A later manuscript edit invalidates the prior language review.",
+      "actual": "Project validation test marked the changed master as needing review and prevented stale export.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 -m unittest tests.test_semantic_lock -v",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/test_semantic_lock.py"
+      ]
+    },
+    {
+      "id": "M01",
+      "expected": "Two authorized PDFs parse locally with source hashes preserved and representative visual checks.",
+      "actual": "Live evidence passed local/offline parsing, page correspondence, explicit empty-block risk, and unchanged source hashes.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 -m unittest tests.test_cache_integrity -v",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/results/M01/live-evidence.json",
+        "tests/scenarios/results/M02/live-evidence.json"
+      ]
+    },
+    {
+      "id": "M02",
+      "expected": "Identical source and options reuse the completed task/cache with traceable lineage.",
+      "actual": "Live evidence and cache tests passed Desk reuse, workflow CACHE_REUSED, and lineage checks.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 -m unittest tests.test_cache_integrity -v",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/scenarios/results/M01/live-evidence.json",
+        "tests/scenarios/results/M02/live-evidence.json",
+        "tests/test_cache_integrity.py"
+      ]
+    },
+    {
+      "id": "M03",
+      "expected": "Reject wrong source/key, partial pages, missing assets, running state, and cloud mode.",
+      "actual": "Cache-integrity negative tests passed every rejection case.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 -m unittest tests.test_cache_integrity -v",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/test_cache_integrity.py"
+      ]
+    },
+    {
+      "id": "M04",
+      "expected": "Reused tasks require complete and valid lineage.",
+      "actual": "Lineage tests passed and reject incomplete ancestry.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 -m unittest tests.test_cache_integrity -v",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/test_cache_integrity.py"
+      ]
+    },
+    {
+      "id": "M05",
+      "expected": "Desk unavailability degrades explicitly; interrupted polling resumes without duplicate submission.",
+      "actual": "Polling and failure-path tests passed; the real Ch2 state rerun kept task count 1 to 1.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 -m unittest tests.test_cache_integrity -v",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/test_cache_integrity.py",
+        "tests/scenarios/results/M02/live-evidence.json"
+      ]
+    },
+    {
+      "id": "M06",
+      "expected": "Original PDFs and prior valid caches survive conversion and publish failures.",
+      "actual": "Atomic-publish fault tests passed and live source hashes remained unchanged.",
+      "status": "passed",
+      "recordedAt": "2026-09-19",
+      "action": "py -3.11 -m unittest tests.test_cache_integrity -v",
+      "exitCode": 0,
+      "environmentRef": "#/environment",
+      "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+      "evidence": [
+        "tests/test_cache_integrity.py",
+        "tests/scenarios/results/M01/live-evidence.json",
+        "tests/scenarios/results/M02/live-evidence.json"
+      ]
+    }
+  ],
+  "workflowGates": [
+    {
+      "id": "WF01",
+      "status": "passed",
+      "scenarios": [
+        "I01",
+        "I02"
+      ],
+      "actual": "Discovery and seed-first coverage passed, including a controlled live conversation."
+    },
+    {
+      "id": "WF02",
+      "status": "passed",
+      "scenarios": [
+        "I03",
+        "I04"
+      ],
+      "actual": "Maturity routing and structured-plan review passed."
+    },
+    {
+      "id": "WF03",
+      "status": "passed",
+      "scenarios": [
+        "I03",
+        "I04",
+        "I05",
+        "I06",
+        "I07"
+      ],
+      "actual": "Single-question mentoring, material boundaries, and near-duplicate disposition passed."
+    },
+    {
+      "id": "WF04",
+      "status": "passed",
+      "scenarios": [
+        "I08",
+        "I09"
+      ],
+      "actual": "Evidence-access and design-fit boundaries passed."
+    },
+    {
+      "id": "WF05",
+      "status": "passed",
+      "scenarios": [
+        "I10",
+        "I11",
+        "I12",
+        "I13"
+      ],
+      "actual": "Resume, revision, handoff, and migration preservation passed."
+    },
+    {
+      "id": "WF06",
+      "status": "passed",
+      "scenarios": [
+        "I11",
+        "I12"
+      ],
+      "actual": "Decision history and downstream invalidation passed."
+    },
+    {
+      "id": "WF07",
+      "status": "passed",
+      "scenarios": [
+        "H01",
+        "H02"
+      ],
+      "actual": "Both real language routes and semantic drift rejection passed."
+    },
+    {
+      "id": "WF08",
+      "status": "passed",
+      "scenarios": [
+        "H03",
+        "H04"
+      ],
+      "actual": "Missing-dependency and stale-review failure behavior passed."
+    },
+    {
+      "id": "WF09",
+      "status": "passed",
+      "scenarios": [
+        "M01",
+        "M06"
+      ],
+      "actual": "Two local/offline PDFs, visual review, and source preservation passed."
+    },
+    {
+      "id": "WF10",
+      "status": "passed",
+      "scenarios": [
+        "M02",
+        "M03",
+        "M04"
+      ],
+      "actual": "Reuse, integrity rejection, and lineage passed."
+    },
+    {
+      "id": "WF11",
+      "status": "passed",
+      "scenarios": [
+        "M05"
+      ],
+      "actual": "Explicit local failure behavior and no duplicate resume passed."
+    },
+    {
+      "id": "WF12",
+      "status": "passed",
+      "scenarios": [
+        "I01",
+        "I02",
+        "I03",
+        "I04",
+        "I05",
+        "I06",
+        "I07",
+        "I08",
+        "I09",
+        "I10",
+        "I11",
+        "I12",
+        "I13",
+        "I14",
+        "H01",
+        "H02",
+        "H03",
+        "H04",
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M06"
+      ],
+      "actual": "All 24 scenarios passed; two fresh installations matched and initialized valid projects."
+    }
+  ],
+  "releaseGates": [
+    {
+      "id": "REL01",
+      "status": "passed",
+      "actual": "Version/license/dependency/link/privacy/archive manifest verification passed; no MinerU ZIP was produced.",
+      "evidence": [
+        "scripts/verify_release.py",
+        "dist/SHA256SUMS.txt"
+      ]
+    },
+    {
+      "id": "REL02",
+      "status": "passed",
+      "actual": "Fresh install, conflict backup, forced upgrade, and exact rollback hash restoration passed.",
+      "evidence": [
+        "tests/test_release_package.py",
+        "docs/install-upgrade-rollback.md"
+      ]
+    },
+    {
+      "id": "REL03",
+      "status": "pending_external_action",
+      "actual": "GitHub repository, tag, Release, remote download, and final local synchronization have not yet run.",
+      "evidence": []
+    }
+  ]
+}

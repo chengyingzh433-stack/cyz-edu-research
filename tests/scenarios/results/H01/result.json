@@ -1,0 +1,26 @@
+{
+  "resultContractVersion": 1,
+  "scenarioId": "H01",
+  "recordedAt": "2026-09-19T08:39:06+08:00",
+  "status": "observed",
+  "observations": {
+    "zhResolvedDependency": "humanizer-zh",
+    "enResolvedDependency": "humanizer",
+    "preservedBaselineCount": 2,
+    "wrongLanguageDependencyCallCount": 0,
+    "overwrittenBaselineCount": 0,
+    "zhSemanticLockExitCode": 0,
+    "enSemanticLockExitCode": 0,
+    "zhManualReviewDisposition": "accepted",
+    "enManualReviewDisposition": "accepted",
+    "sameParagraphProcessedByBothSkills": false,
+    "factsOrNumbersAdded": false,
+    "executionMode": "primary-agent-single-thread-embedded-skill-execution",
+    "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6"
+  },
+  "sourceEvidence": [
+    "results/H01/artifacts/index.json",
+    "results/H01/artifacts/semantic-lock-zh.md",
+    "results/H01/artifacts/semantic-lock-en.md"
+  ]
+}

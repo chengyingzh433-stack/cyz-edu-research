@@ -1,0 +1,37 @@
+{
+  "searchedAt": "2026-09-19",
+  "purpose": "targeted idea check",
+  "sources": [
+    {
+      "paperId": "lichtenberger-hofer-stern-2025",
+      "title": "Enhanced conceptual understanding through formative assessment: results of a randomized controlled intervention study in physics classes",
+      "locator": "https://www.research-collection.ethz.ch/items/f84481b8-a1fb-4769-9a00-bba0aaaf8895",
+      "access": "F",
+      "use": "closest secondary-physics concept-question intervention"
+    },
+    {
+      "paperId": "savinainen-scott-2002",
+      "title": "The effectiveness of peer instruction and structured inquiry on conceptual understanding of force and motion: A case study from Thailand",
+      "locator": "https://repository.li.mahidol.ac.th/entities/publication/8e262bc7-690a-4ce8-9f67-205fe570562b",
+      "access": "A",
+      "use": "close Grade 10 force-and-motion study; detailed method claims withheld"
+    },
+    {
+      "paperId": "wood-et-al-2014",
+      "title": "Analyzing learning during Peer Instruction dialogues: A resource activation framework",
+      "doi": "10.1103/PhysRevSTPER.10.020107",
+      "locator": "https://journals.aps.org/prper/abstract/10.1103/PhysRevSTPER.10.020107",
+      "access": "F",
+      "use": "dialogue mechanism and coding direction; undergraduate transfer limit"
+    },
+    {
+      "paperId": "zu-munsell-rebello-2019",
+      "title": "Comparing retrieval-based practice and peer instruction in physics learning",
+      "doi": "10.1103/PhysRevPhysEducRes.15.010105",
+      "locator": "https://journals.aps.org/prper/abstract/10.1103/PhysRevPhysEducRes.15.010105",
+      "access": "F",
+      "use": "counterevidence: peer instruction was not superior for every retention or transfer outcome"
+    }
+  ],
+  "decision": "Reject title-only continuation; preserve revision 1 and recommend a mechanism-focused revision 2 with local claim limits."
+}

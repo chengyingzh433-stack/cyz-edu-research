@@ -20,3 +20,9 @@
 - Project schema: 2.
 - Workflow contract: 1.
 - Verified local MinerU runtime: Desk 0.3.1 / MinerU 3.4.5 on CPU.
+
+### Verification
+
+- Passed all 24 workflow scenarios (`I01-I14`, `H01-H04`, `M01-M06`) and all 12 WF gates.
+- Passed deterministic package, fresh-install, conflict-backup, and rollback verification.
+- GitHub Release and remote-download verification are recorded separately and are not implied by the local checks above.

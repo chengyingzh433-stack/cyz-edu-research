@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "reviewType": "manual-semantic-regression",
+  "baselineSha256": "0115feb60e2b83ba59826ed1150de15e1957b9e3748d2c0ed967527ceef717fd",
+  "outputSha256": "205ba726c9da0e320b5329477fc285f34c9b9583422ea004a31d0395f50cc58f",
+  "issue": "bounded_academic_language_revision",
+  "disposition": "accepted",
+  "reason": "数字、样本、时间、相关方向、显著性、因果限制和外推边界均保持不变；仅删除空泛背景、重复升华和助手式连接语。"
+}

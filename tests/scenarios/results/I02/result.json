@@ -1,0 +1,25 @@
+{
+  "resultContractVersion": 1,
+  "scenarioId": "I02",
+  "recordedAt": "2026-09-19T08:50:00+08:00",
+  "status": "observed",
+  "observations": {
+    "seedMaterialReuseCount": 2,
+    "duplicateConversionCount": 0,
+    "supplementSearchStopCondition": "Stop after the main direction families are represented, population mismatch is explicit, and the user selects one direction for targeted validation.",
+    "repeatedKnownQuestionCount": 0,
+    "unsupportedCandidatePaddingCount": 0,
+    "candidateCardCount": 3,
+    "maxQuestionsPerTurn": 1,
+    "unverifiedGapClaimCount": 0,
+    "ideaStatus": "needs_verification",
+    "executionMode": "primary-agent-single-thread-controlled-live-conversation",
+    "independentModelSessionUsed": false,
+    "subagentUsed": false,
+    "commit": "132c213ec83b9ab46616504296fc5d43c35a80c6"
+  },
+  "sourceEvidence": [
+    "results/I02/artifacts/live-conversation.md",
+    "results/I02/artifacts/sources.json"
+  ]
+}

@@ -1,5 +1,15 @@
 # Workflow 0.3.0 Acceptance
 
+## Current result
+
+- WF01-WF12: **12/12 passed** on 2026-09-19.
+- Scenario fixtures: **24/24 passed** (`I01-I14`, `H01-H04`, `M01-M06`).
+- Deterministic unit suite: **96/96 passed** at candidate commit `132c213ec83b9ab46616504296fc5d43c35a80c6`.
+- Release package gates REL01-REL02: **passed**.
+- REL03: pending GitHub Release creation, remote re-download, and verified local synchronization.
+
+The detailed machine-readable record is in [evidence-index.json](evidence-index.json). Two idea sessions were executed by the current primary agent with scripted user turns, sequentially and without subagents; they are not represented as independent human-user studies or independent model replications.
+
 ## Deterministic Gates
 
 - Unit and scenario-harness tests must all pass without required skips.
@@ -14,6 +24,8 @@
 - Real local MinerU evidence is stored only as redacted scenario evidence.
 - At least two authorized PDFs must complete local parsing, cache validation, and representative page-level visual review without changing source hashes.
 - Identical input and options must demonstrate reuse; interrupted polling must resume an existing task rather than submit a duplicate.
+
+Observed local runtime: MinerU Desk 0.3.1, MinerU 3.4.5, CPU, local Pipeline, offline mode. Two authorized PDFs completed 15-page and 17-page conversions, and 12 representative pages were visually inspected across text, figures, tables, chart content, and formulas where applicable. Original PDF hashes were unchanged.
 
 ## Release Boundary
 

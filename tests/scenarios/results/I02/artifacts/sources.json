@@ -1,0 +1,37 @@
+{
+  "searchedAt": "2026-09-19",
+  "purpose": "discovery scan",
+  "sources": [
+    {
+      "paperId": "ole-gallos-2023",
+      "title": "Impact of Formative Assessment Based on Feedback Loop Model on High School Students' Conceptual Understanding and Engagement with Physics",
+      "locator": "https://eric.ed.gov/?id=EJ1393055",
+      "access": "A",
+      "use": "Grade 12 physics population fit; abstract-level only"
+    },
+    {
+      "paperId": "lichtenberger-hofer-stern-2025",
+      "title": "Enhanced conceptual understanding through formative assessment: results of a randomized controlled intervention study in physics classes",
+      "locator": "https://www.research-collection.ethz.ch/items/f84481b8-a1fb-4769-9a00-bba0aaaf8895",
+      "access": "F",
+      "use": "secondary physics, 29 teachers, 604 students, 14-lesson kinematics intervention"
+    },
+    {
+      "paperId": "deslauriers-et-al-2019",
+      "title": "Measuring actual learning versus feeling of learning in response to being actively engaged in the classroom",
+      "doi": "10.1073/pnas.1821936116",
+      "locator": "https://www.pnas.org/doi/full/10.1073/pnas.1821936116",
+      "access": "F",
+      "use": "mechanism candidate; undergraduate context limits transfer"
+    },
+    {
+      "paperId": "wood-et-al-2014",
+      "title": "Analyzing learning during Peer Instruction dialogues: A resource activation framework",
+      "doi": "10.1103/PhysRevSTPER.10.020107",
+      "locator": "https://journals.aps.org/prper/abstract/10.1103/PhysRevSTPER.10.020107",
+      "access": "F",
+      "use": "dialogue-mechanism candidate; undergraduate context"
+    }
+  ],
+  "stopCondition": "Stop broad discovery after the main formative-assessment, active-learning perception, and peer-dialogue families are represented, population mismatch is explicit, and the user selects one direction for targeted validation."
+}
