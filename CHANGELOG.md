@@ -25,4 +25,4 @@
 
 - Passed all 24 workflow scenarios (`I01-I14`, `H01-H04`, `M01-M06`) and all 12 WF gates.
 - Passed deterministic package, fresh-install, conflict-backup, and rollback verification.
-- GitHub Release and remote-download verification are recorded separately and are not implied by the local checks above.
+- Published the private GitHub Release `0.3.0`; the remote-downloaded archive matched SHA-256, installed cleanly in two fresh roots, and was then synchronized to both verified local Skill roots with backups.

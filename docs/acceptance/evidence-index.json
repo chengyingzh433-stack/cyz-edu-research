@@ -1,8 +1,20 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-19T09:10:00+08:00",
+  "generatedAt": "2026-09-19T09:15:00+08:00",
   "releaseVersion": "0.3.0",
   "candidateCommit": "132c213ec83b9ab46616504296fc5d43c35a80c6",
+  "releaseCommit": "7ed5f72c350236c08a55738a0495c4395942b855",
+  "publishedRelease": {
+    "repository": "chengyingzh433-stack/cyz-edu-research",
+    "visibility": "private",
+    "defaultBranch": "main",
+    "tag": "0.3.0",
+    "annotatedTagObject": "09837a21e706139a9cb58de094f9e549dfc9d18f",
+    "releaseUrl": "https://github.com/chengyingzh433-stack/cyz-edu-research/releases/tag/0.3.0",
+    "archiveSha256": "a87e7c2a40779529d37c241af06b544d1409fda856b7220f9b82f1a5632294cc",
+    "remoteDownloadVerified": true,
+    "localInstallTreeSha256": "d2b154ee6e319b7d77bc0bffbeced7a9cd1dea9c0d9570e21d69de9336fa4409"
+  },
   "environment": {
     "os": "Windows NT 10.0.26200.0",
     "python": "3.11.9",
@@ -529,9 +541,12 @@
     },
     {
       "id": "REL03",
-      "status": "pending_external_action",
-      "actual": "GitHub repository, tag, Release, remote download, and final local synchronization have not yet run.",
-      "evidence": []
+      "status": "passed",
+      "actual": "Private GitHub repository, annotated tag, normal Release, three assets, remote SHA-256 verification, fresh installs, and two-root local synchronization all passed.",
+      "evidence": [
+        "docs/release/release-evidence.md",
+        "docs/release/local-install-manifest.json"
+      ]
     }
   ]
 }

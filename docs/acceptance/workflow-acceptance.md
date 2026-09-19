@@ -4,9 +4,9 @@
 
 - WF01-WF12: **12/12 passed** on 2026-09-19.
 - Scenario fixtures: **24/24 passed** (`I01-I14`, `H01-H04`, `M01-M06`).
-- Deterministic unit suite: **96/96 passed** at candidate commit `132c213ec83b9ab46616504296fc5d43c35a80c6`.
+- Deterministic unit suite: **96/96 passed** at candidate commit `132c213ec83b9ab46616504296fc5d43c35a80c6`, then **96/96 passed** again after verified local synchronization.
 - Release package gates REL01-REL02: **passed**.
-- REL03: pending GitHub Release creation, remote re-download, and verified local synchronization.
+- REL03: **passed**; the private GitHub Release, annotated tag, remote re-download, fresh install, and two-root local synchronization were verified.
 
 The detailed machine-readable record is in [evidence-index.json](evidence-index.json). Two idea sessions were executed by the current primary agent with scripted user turns, sequentially and without subagents; they are not represented as independent human-user studies or independent model replications.
 
@@ -31,4 +31,4 @@ Observed local runtime: MinerU Desk 0.3.1, MinerU 3.4.5, CPU, local Pipeline, of
 
 The workflow ZIP may contain only the `cyz-edu-research` Skill and its public metadata. It must not contain MinerU wrappers, Desk binaries, model weights, credentials, personal absolute paths, personal PDFs, raw research material, or generated caches. A MinerU ZIP is prohibited until an explicit redistribution license is established.
 
-GitHub publication and remote-download verification are a separate release milestone; this document does not claim they have passed.
+GitHub publication and remote-download verification were a separate milestone from the candidate-package gates. REL03 now records that milestone as passed; its URLs, hashes, installed-file manifest, and local backup identifiers are retained under `docs/release/`.

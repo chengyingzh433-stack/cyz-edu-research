@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REPO_MANIFEST = ROOT / "docs" / "baseline-manifest.json"
 WORK_MANIFEST = ROOT.parents[1] / "baseline-manifest.json"
 SNAPSHOT_ROOT = ROOT / "docs" / "source-snapshots"
+CURRENT_INSTALL_MANIFEST = ROOT / "docs" / "release" / "local-install-manifest.json"
 SECRET_LIKE_KEY = re.compile(
     r"(?:token|secret|password|passwd|credential|api[_-]?key|"
     r"access[_-]?key|private[_-]?key)",
@@ -180,19 +181,33 @@ class BaselineManifestTests(unittest.TestCase):
                     self.assertEqual(item["bytes"], len(data))
                     self.assertEqual(item["sha256"], hashlib.sha256(data).hexdigest())
 
-    def test_cyz_install_tree_hashes_match_actual_files(self):
-        manifest = load_manifest()
-        installs = manifest["cyzEduResearchInstalls"]
+    def test_cyz_install_trees_match_current_declared_state(self):
+        baseline = load_manifest()
+        baseline_installs = baseline["cyzEduResearchInstalls"]
+        release = json.loads(CURRENT_INSTALL_MANIFEST.read_text(encoding="utf-8"))
+        release_installs = {item["root"]: item for item in release["installations"]}
+        expected_files = sorted(
+            (
+                {
+                    "relativePath": item["path"],
+                    "sha256": item["sha256"],
+                    "bytes": item["bytes"],
+                }
+                for item in release["controlledFiles"]
+            ),
+            key=lambda item: item["relativePath"],
+        )
+
         for root_name in ("codex", "agents"):
             with self.subTest(root=root_name):
-                path = Path(installs[root_name]["path"])
+                path = Path(baseline_installs[root_name]["path"])
                 if not path.exists() and not path.is_symlink():
                     self.skipTest(f"installation root unavailable: {path}")
-                self.assertEqual(installs[root_name]["full"], tree_metrics(path))
+                self.assertEqual(expected_files, tree_inventory(path, exclude_cache=True))
                 self.assertEqual(
-                    installs[root_name]["cacheExcluded"],
-                    tree_metrics(path, exclude_cache=True),
+                    release["releaseVersion"], release_installs[root_name]["version"]
                 )
+                self.assertEqual(len(expected_files), release_installs[root_name]["fileCount"])
 
     def test_cyz_backup_tree_hashes_match_manifest(self):
         manifest = load_manifest()

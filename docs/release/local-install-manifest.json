@@ -1,0 +1,246 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-09-19T09:05:00+08:00",
+  "releaseVersion": "0.3.0",
+  "releaseTag": "0.3.0",
+  "releaseCommit": "7ed5f72c350236c08a55738a0495c4395942b855",
+  "archiveSha256": "a87e7c2a40779529d37c241af06b544d1409fda856b7220f9b82f1a5632294cc",
+  "source": "verified GitHub Release re-download",
+  "priorState": {
+    "version": "0.2.1",
+    "fileCount": 31,
+    "treeSha256": "ed612888766e4445993f3988a3c17405568fcea67a33480332d30d019b2d6ef8",
+    "rootsEqual": true
+  },
+  "installations": [
+    {
+      "root": "codex",
+      "path": "<user-codex-skills>/cyz-edu-research",
+      "preflightBackupId": "backup-v0x2ct92",
+      "upgradeBackupId": "backup-marq3nec",
+      "status": "upgraded_with_conflicts",
+      "version": "0.3.0",
+      "fileCount": 41,
+      "treeSha256": "d2b154ee6e319b7d77bc0bffbeced7a9cd1dea9c0d9570e21d69de9336fa4409"
+    },
+    {
+      "root": "agents",
+      "path": "<user-agents-skills>/cyz-edu-research",
+      "preflightBackupId": "backup-09m3820n",
+      "upgradeBackupId": "backup-esm_zhq1",
+      "status": "upgraded_with_conflicts",
+      "version": "0.3.0",
+      "fileCount": 41,
+      "treeSha256": "d2b154ee6e319b7d77bc0bffbeced7a9cd1dea9c0d9570e21d69de9336fa4409"
+    }
+  ],
+  "rootsEqual": true,
+  "pycacheExcluded": true,
+  "controlledFiles": [
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 1164,
+      "sha256": "5016812ff036ac8c4a43ab3b33f00f936ef32b0b9e8b02ace301a4c80f50d076"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 19584,
+      "sha256": "b3848009d12a173f549ef98d9ee486e64459e8eb5d9f895bff53782b4aa86d7c"
+    },
+    {
+      "path": "SKILL.md",
+      "bytes": 12411,
+      "sha256": "86b373485e54f2b13bda7a570527ff2abcf3e960e993fcdd6b104073ba5b22de"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "bytes": 2220,
+      "sha256": "57aac01ff68ad98d9c176e30c470836a268238fdddc4d645ab5cd39fb632527d"
+    },
+    {
+      "path": "VERSION",
+      "bytes": 6,
+      "sha256": "d915cc95d6ca8f47ae297713ed46d4e5c5d99ddd29fc3c61e263bdf305f2b5b0"
+    },
+    {
+      "path": "agents/openai.yaml",
+      "bytes": 301,
+      "sha256": "dd3f04da0ed9cd8e77af845c4fb16e2605be380ad2e2ce111bebb6695fa59e78"
+    },
+    {
+      "path": "dependencies.lock.json",
+      "bytes": 1336,
+      "sha256": "e4829ec67a1e9c3353cad22ae6f21cf41b3962c910a00e6d0b5d73a3b2622520"
+    },
+    {
+      "path": "docs/acceptance/evidence-index.json",
+      "bytes": 20809,
+      "sha256": "20c04734b8b281f570509fa457776820130e4c78dab12c2d40cee957f7d2f67a"
+    },
+    {
+      "path": "docs/acceptance/workflow-acceptance.md",
+      "bytes": 2507,
+      "sha256": "e6ac3d95ffff91f036f48bccb272ce16a8eb105fcb08e6dbfc4ac85cba5a4df7"
+    },
+    {
+      "path": "docs/install-upgrade-rollback.md",
+      "bytes": 1991,
+      "sha256": "5d70f7c455e893a0c6135ff574894c35190b524d0565f63e208f37e2b2d432b3"
+    },
+    {
+      "path": "plugin.json",
+      "bytes": 1293,
+      "sha256": "1b344557fb2f7281326237fa5adff7228734439d9ed6f771d5546830fb435701"
+    },
+    {
+      "path": "references/academic-humanization.md",
+      "bytes": 18439,
+      "sha256": "29f1aef1d6c9916c17bd615caf8307ea50a3c869ece7358c52f5ca54983e0d9f"
+    },
+    {
+      "path": "references/education-research-methods.md",
+      "bytes": 6558,
+      "sha256": "6fabc58d6194f2399e4855788196a9c4a96e99b4e25213b619ea470f5d8a0855"
+    },
+    {
+      "path": "references/guided-mentor.md",
+      "bytes": 2648,
+      "sha256": "367977b8e87aa4ceb06b7ce7b2a1cf3a976f7fcb617c175874fb39b29d713c6f"
+    },
+    {
+      "path": "references/idea-refinement.md",
+      "bytes": 4214,
+      "sha256": "e0e599079ccba1f772573c500d75a1955767149c610e7129fd97f4295338a11c"
+    },
+    {
+      "path": "references/idea-scout.md",
+      "bytes": 4067,
+      "sha256": "7d3a824c36e124cda86161cbdd7bf741561ab402b4c1a0ea9418733b079f6ebd"
+    },
+    {
+      "path": "references/integrity-gates.md",
+      "bytes": 6999,
+      "sha256": "ac418ac80a336044e9102e987f688777c6fb668d604f2536d9f8dc75d0555e60"
+    },
+    {
+      "path": "references/literature-workflow.md",
+      "bytes": 7590,
+      "sha256": "5f80df1930504ba4a3855547dd7ce4bf0defd97d72eae8085387835861abeb90"
+    },
+    {
+      "path": "references/paper-writing.md",
+      "bytes": 6971,
+      "sha256": "332ede15abb744c460ad0a37ad26b6a4aa9e8087b3c1b71ceb6f5ee4dabe02fd"
+    },
+    {
+      "path": "references/pdf-reading.md",
+      "bytes": 9608,
+      "sha256": "3e571c66237397e4b26b0d0f6a6e837377aa69cf82721a576d5e2f3244a63601"
+    },
+    {
+      "path": "references/project-protocol.md",
+      "bytes": 3491,
+      "sha256": "7ec5f58ff2f6f10db4771bbf822bfd0ba47ff96c4198e82e68496d3ff8b53888"
+    },
+    {
+      "path": "release-manifest.json",
+      "bytes": 7331,
+      "sha256": "5b79925f3beeba718d225cfaaf7bde2da89e87cdb7335f55a3793fd2b9076d56"
+    },
+    {
+      "path": "scripts/check_semantic_lock.py",
+      "bytes": 23647,
+      "sha256": "e39e8d533a67b68c61be0054c804d775259af74ed934e6e6266d728067a7b87f"
+    },
+    {
+      "path": "scripts/convert_pdf_to_md.py",
+      "bytes": 50301,
+      "sha256": "03fe65f8abe6bf61f84745ea26208dd60e0141fe2bdeb2b328fb908a7bd91952"
+    },
+    {
+      "path": "scripts/export_mineru_task.py",
+      "bytes": 17387,
+      "sha256": "86de91b485d4174cb2dfa366be9d2d6c8c416c32075384e6cd0ed27bc7d59672"
+    },
+    {
+      "path": "scripts/init_project.py",
+      "bytes": 5515,
+      "sha256": "af1eefcbd6ea7be203fa94d95c82499fc8c4d68740eca807b09ae72c956149d7"
+    },
+    {
+      "path": "scripts/migrate_project.py",
+      "bytes": 16400,
+      "sha256": "dd206ac264a4cea9a50a5b9ff346369f1470307edb64dc4227247456dd04366f"
+    },
+    {
+      "path": "scripts/mineru_cache.py",
+      "bytes": 12342,
+      "sha256": "2f0e914dcc0584e0536db7306561ea2f5397679cfe2cf353cab153d3edd4cda7"
+    },
+    {
+      "path": "scripts/validate_project.py",
+      "bytes": 23691,
+      "sha256": "2443cebbc119b52a97a67d49259da3551cacef78617a84d5bb6c5e7db5c98860"
+    },
+    {
+      "path": "templates/academic-humanization-report.md",
+      "bytes": 3350,
+      "sha256": "9d36a088dbbb663f06794ff70ed804c685d1b3b16eff31acd06f94cf76d1976e"
+    },
+    {
+      "path": "templates/audit-report.md",
+      "bytes": 1085,
+      "sha256": "67389c91abd0e76c73c489f20c0d901cda0ac6d6dfb2992fb14ddda6d235868f"
+    },
+    {
+      "path": "templates/evidence-matrix.md",
+      "bytes": 726,
+      "sha256": "251222b9eb812548a26eb2fabc0587f1756999dae855d4ec8e2a069d6b64a045"
+    },
+    {
+      "path": "templates/idea-workspace.md",
+      "bytes": 2679,
+      "sha256": "bb1d5e2ffb983065bb734f97644a1568ebfbd5e7a1dab1df5881805aa9c84120"
+    },
+    {
+      "path": "templates/literature-card.md",
+      "bytes": 1387,
+      "sha256": "fdd210ec3461e7c0f6679be7cec481f68af1d233fc2008ec1407b7cbc4a51b64"
+    },
+    {
+      "path": "templates/project-status.md",
+      "bytes": 2328,
+      "sha256": "16e9f048aee5a615edcc0af246a5b8c80e22af2806863f4d4a2fc2b4167ed21b"
+    },
+    {
+      "path": "templates/rapid-scan.md",
+      "bytes": 349,
+      "sha256": "48161ffe8a812dbe478b00216ac63c83a0907d0221d4e8453df71d935044c97b"
+    },
+    {
+      "path": "templates/research-design.md",
+      "bytes": 560,
+      "sha256": "a1a0a2f3e7fa071d6ec40791233365197580b946125404bb69544f437a941d71"
+    },
+    {
+      "path": "templates/three-way-scan.md",
+      "bytes": 740,
+      "sha256": "ed82ad580b34eae431e8d5da62077131c21629bc5906cf94e86f19d6b16cb463"
+    },
+    {
+      "path": "third_party/qu-ai-wei-LICENSE.txt",
+      "bytes": 1077,
+      "sha256": "38afb5701ea731548bf4ec5e9f550e0150cfa5257071114eac0de1ee0902a5ef"
+    },
+    {
+      "path": "使用说明.md",
+      "bytes": 32417,
+      "sha256": "e6ecad27529e3fcad8cb73b18b97d756bb4e850e8bf5b27e8b9ba3daef25c708"
+    },
+    {
+      "path": "改造说明.md",
+      "bytes": 11856,
+      "sha256": "db36e02b00d3676f21d6be2b4ac65bc157cb42da3aa05ffc7fd4111a1b88478f"
+    }
+  ]
+}
