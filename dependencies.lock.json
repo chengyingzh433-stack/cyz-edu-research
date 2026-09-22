@@ -62,6 +62,14 @@
     },
     {
       "name": "mineru",
+      "bundledScope": {
+        "authorizedBy": "author-user-request-2026-09-22",
+        "entry": "references/mineru/SKILL.md",
+        "sourceFiles": ["SKILL.md", "references/desk-local.md"],
+        "adaptations": ["portable-discovery", "prepare-before-fallback", "verified-installer-reference"],
+        "deskInstalledSeparately": true,
+        "historicalDirectoryLicenseStillUnknown": true
+      },
       "version": "4.0.0-desk-local",
       "versionStatus": "declared",
       "versionEvidence": "SKILL.md metadata.version",

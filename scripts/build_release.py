@@ -58,7 +58,17 @@ def public_dependency_lock(lock_path: Path) -> bytes:
                     "licenseStatus",
                 )
             }
-            | {"installedSeparately": True}
+            | (
+                {
+                    "installedSeparately": False,
+                    "deskInstalledSeparately": True,
+                    "sourceStatus": "user-authored-desk-entry-authorized-2026-09-22",
+                    "licenseStatus": "user-authorized-entry-and-local-reference-only",
+                    "bundledEntry": "references/mineru/SKILL.md",
+                }
+                if item.get("name") == "mineru"
+                else {"installedSeparately": True}
+            )
         )
     public = {
         "schemaVersion": source.get("schemaVersion", 1),
@@ -66,7 +76,7 @@ def public_dependency_lock(lock_path: Path) -> bytes:
         "dependencies": dependencies,
         "releasePolicy": {
             "environmentSpecificPathsExcluded": True,
-            "dependenciesBundled": False,
+            "dependenciesBundled": ["mineru-desk-instructions-only"],
             "mineruRedistributionAllowed": False,
         },
     }
@@ -198,7 +208,7 @@ def build_release(
         f"- Archive: `{archive.name}`\n"
         f"- SHA-256: `{archive_hash}`\n"
         f"- Manifested payload files: {len(manifest['files'])}\n"
-        "- MinerU wrapper ZIP: not produced (redistribution license unconfirmed)\n"
+        "- MinerU: user-authorized Desk Skill instructions embedded; application, models and historical cloud scripts excluded.\n"
         "- Required next gate: run `scripts/verify_release.py --dist dist` and the full test suite.\n",
         encoding="utf-8",
         newline="\n",

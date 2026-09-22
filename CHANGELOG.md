@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 - Unreleased
+
+- Embed the user's own MinerU Desk Skill entry and local API reference; a separate global mineru Skill registration is no longer needed.
+- Prepare Desk before conversion: discover an existing installation, obtain a verified compatible installer if absent, then diagnose models/runtime and inspect a sample.
+- Stop silent native conversion on a cache miss, including --force. Last-resort extraction requires --fallback-reason, recorded in the manifest and report.
+- Keep valid caches, explicit legacy TXT migration, local-only processing and the Desk task importer.
+- Published workbench 0.1.0-preview.1 still bundles workflow 0.3.0 until separately rebuilt and verified.
+
 ## 0.3.0 - 2026-09-19
 
 ### Added

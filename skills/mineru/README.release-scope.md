@@ -1,13 +1,13 @@
 # MinerU Release Scope
 
-MinerU is a local dependency of this workflow, not a vendored release component.
+MinerU Desk is a local dependency. Since 0.3.1, the user-authored Desk entry Skill and its local interface reference are embedded in the workflow under references/mineru with the author's explicit authorization on 2026-09-22. No separate global mineru Skill installation is required.
 
-The installed `mineru` wrapper Skill declares version `4.0.0-desk-local`, but the inspected installations contain no `LICENSE` or `NOTICE` that establishes redistribution permission. Therefore this repository must not copy, package, or publish the wrapper files, and must not build a MinerU Skill ZIP. The observed installation paths, cache-excluded directory hash, file count, byte count, declared version, and unknown license/source status are recorded in `dependencies.lock.json` as local-environment evidence only.
+The original installed directory declares version `4.0.0-desk-local` but has no blanket `LICENSE` or `NOTICE`. The two-file authorization must not be extended to its historical cloud scripts, program, models, or data; do not build a ZIP of the entire original wrapper. The original directory metrics in dependencies.lock.json remain historical local-environment evidence, not permission to redistribute all its files.
 
 ## Local installation
 
 1. Install MinerU Desk independently on the user's machine.
-2. Install the local `mineru` wrapper Skill independently under an available skills root, such as `.codex/skills/mineru` or `.agents/skills/mineru`.
+2. Read the embedded references/mineru/SKILL.md; do not require another global Skill registration.
 3. Verify the local Desk with its own doctor/self-test commands before use.
 4. Recompute the canonical directory hash described in `dependencies.lock.json`; transient `__pycache__`, `*.pyc`, and `*.pyo` files are excluded.
 5. Use `export_mineru_task.py` only with an existing local task ID, then import through `convert_pdf_to_md.py --mineru-task`. The workflow never auto-uploads a source document.

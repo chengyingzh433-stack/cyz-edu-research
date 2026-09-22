@@ -36,9 +36,9 @@ The package re-expresses general research-workflow ideas in new education-specif
 
 - Chinese language editing: `syw2039/humanizer-zh`, https://github.com/syw2039/humanizer-zh (installed separately with its LICENSE/NOTICE).
 - English language editing: locally installed `humanizer` (MIT; upstream blader/humanizer).
-- PDF parsing: locally installed `mineru` skill targeting the user's MinerU Desk; the desktop runtime/models retain their own notices and are not redistributed in this workbench.
+- PDF parsing: the embedded user-authored `mineru` Skill targeting the user's MinerU Desk; the desktop runtime/models retain their own notices and are not redistributed in this workbench.
 
-The release does not include the MinerU wrapper, MinerU Desk, model weights, personal PDFs, or generated parsing data because no redistributable wrapper license was confirmed. Environment-specific installation paths are also excluded from the public dependency lock.
+The release includes only the author's authorized Desk Skill entry and local interface reference, with the adaptations described below. Historical cloud scripts, MinerU Desk, model weights, personal PDFs and generated parsing data are excluded. Environment-specific installation paths are also excluded from the public dependency lock.
 
 The workbench provides academic constraints and a cache adapter around these dependencies. Retained qu-ai-wei-derived material is acknowledged below for provenance; this is not a current invocation dependency.
 
@@ -55,3 +55,6 @@ This package substantially narrows and modifies the original workflow for Simpli
 ## User-Provided Course Notes
 
 The education-research and paper-writing knowledge references were distilled from course notes supplied by the user, including materials based on Zheng Yafeng's paper-writing lectures and separate education-research-methods coursework. Raw slides, transcripts, PDFs, and full source notes are not bundled. These distilled rules are methodological guidance and are not academic sources to cite in a manuscript.
+## User-authored MinerU Desk Skill (2026-09-22 update)
+
+The author explicitly supplied and authorized integration of their mineru SKILL.md and references/desk-local.md. The adapted copies are bundled under references/mineru, with portable discovery and preparation-first routing. This supersedes earlier blanket exclusion of those two files only. No blanket license is asserted for the historical wrapper directory; its cloud scripts remain excluded. The Desk application, engines, models, credentials and generated documents are not bundled. The application remains a separately installed local dependency. No separate MinerU Skill installation is required.

@@ -32,7 +32,7 @@ A request for a key figure, formula, table, or page is not permission to re-extr
 
 ## 3. New PDF: Local MinerU Desk First
 
-The workbench orchestrates the installed `mineru` skill. The bundled converter is the cache adapter and native fallback, not a second cloud/local dispatcher. Before starting Desk, probe without modifying files:
+The workbench includes the user's [mineru Skill](mineru/SKILL.md) and orchestrates their local Desk through Codex.ps1. A separate globally registered mineru Skill is not required. The bundled converter is the cache adapter and native fallback, not a second cloud/local dispatcher. Before starting Desk, probe without modifying files:
 
 ```text
 python scripts/convert_pdf_to_md.py <paper.pdf> --project-root <project> --paper-id <paper-id> --image-mode auto --check-cache
@@ -40,7 +40,7 @@ python scripts/convert_pdf_to_md.py <paper.pdf> --project-root <project> --paper
 
 Exit 0 means reuse the canonical cache even if it predates MinerU; exit 3 means conversion is needed; any other exit is an error to diagnose. Do not reparse valid native caches solely because the preferred backend changed. Explicit user requests to upgrade a cache may use --force after preserving existing reviewed locators.
 
-On a cache miss, read and follow the installed mineru SKILL.md. It automatically locates Desk, validates the installation, checks runtime/models/offline state, submits local Pipeline parsing, and follows tasks to completed/reused. First inspect a small PDF sample as required by that skill; then complete the requested full document. Output Desk artifacts outside the canonical cache (for example project tmp/mineru-desk/) to keep backend output separate from paper.md.
+On a cache miss, read and follow the embedded [mineru SKILL.md](mineru/SKILL.md), including its preparation instructions if Desk is missing. It automatically locates Desk, validates the installation, checks runtime/models/offline state, submits local Pipeline parsing, and follows tasks to completed/reused. First inspect a small PDF sample as required by that skill; then complete the requested full document. Output Desk artifacts outside the canonical cache (for example project tmp/mineru-desk/) to keep backend output separate from paper.md.
 
 Export a minimal authenticated task record (no connection credentials), using the included helper. It resolves cache-reuse chains to the original runtime version and retains the settings needed to verify the Desk source-binding cache key:
 
@@ -56,14 +56,14 @@ python scripts/convert_pdf_to_md.py <paper.pdf> --project-root <project> --paper
 
 The importer verifies local/full-document status, source path, the Desk 0.3.1 cache key computed from the current source PDF SHA-256, exact options, and recorded runtime settings/version, exact page coverage in `_middle.json`, and block page indexes in `_content_list.json`. It preserves block types, formula text, table HTML, captions, images and bounding boxes; assigns canonical page/block locators; copies images into assets; and updates project state/index using the existing converter. Unknown block schemas, missing assets, partial outputs and mismatched sources fail explicitly, never silently become verified evidence. MinerU reserializes `_origin.pdf`, so it is not used as a byte-identical source. Content-list v2 is not inferred as v1. The importer supports offline local Pipeline; changed Desk cache-key schemas require adapter review. Backend raw outputs remain separate for audit; paper.md remains the only canonical reading cache.
 
-If Desk is unavailable, its model/runtime fails, or its output cannot be adapted, record the concrete reason in the project conversion/audit record and run the native fallback below. Do not auto-upload or download models. A conversion failure does not authorize bypassing installation integrity checks. Native fallback has weaker OCR/table/formula support; disclose its limits. Use --render-pages for page-specific visual verification; imported images are kept even with image-mode none because they carry document content.
+Missing global Skill, missing Desk, pending installation/model preparation, and a still-running task do not authorize fallback. First follow the embedded Skill's discovery, verified download/installation, diagnosis and bounded recovery. Only when this cannot proceed, or the user explicitly chooses native conversion, record the actual attempts and concrete failure (including task ID when applicable), then use the native fallback below with --fallback-reason. Never invent recovery attempts. Do not auto-upload or download models. A conversion failure does not authorize bypassing installation integrity checks. Native fallback has weaker OCR/table/formula support; disclose its limits. Use --render-pages for page-specific visual verification; imported images are kept even with image-mode none because they carry document content.
 
 ### Native fallback or explicit legacy TXT migration
 
 For an explicit native fallback (without --mineru-task), run:
 
 ```text
-python scripts/convert_pdf_to_md.py <paper.pdf> --project-root <project> --paper-id <paper-id> --image-mode auto
+python scripts/convert_pdf_to_md.py <paper.pdf> --project-root <project> --paper-id <paper-id> --image-mode auto --fallback-reason "<actual failed preparation/recovery and limitation, or explicit user choice>"
 ```
 
 For a standalone cache, use `--output-dir`. The converter writes Markdown and JSON directly; it must not create a persistent TXT first.

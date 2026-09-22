@@ -14,7 +14,7 @@ Original license: Creative Commons Attribution-NonCommercial 4.0 International. 
 
 - `humanizer-zh`: syw2039/humanizer-zh, MIT; installed separately with its own license.
 - `humanizer`: blader/humanizer, MIT; installed separately with its own license.
-- `mineru`: a local wrapper around MinerU Desk. No redistributable wrapper license was confirmed, so the wrapper, Desk application, models, and generated data are not included.
+- MinerU Desk: application, engines, models and generated data are not included. The author's two-file local Skill integration is included as described below; historical cloud scripts remain excluded.
 
 Dependency provenance is recorded in `dependencies.lock.json`. Environment-specific installation paths are deliberately removed from the public release copy.
 
@@ -27,3 +27,6 @@ The current implementation adds academic anchor freezing, deterministic semantic
 ## Design References and User Materials
 
 Other locally installed research and PDF Skills were consulted as design references without redistributing their files or prose. User-provided course notes informed methodological guidance; raw slides, transcripts, PDFs, student data, and full source notes are not bundled and are not academic sources to cite.
+## User-authored MinerU Desk Skill (2026-09-22 update)
+
+The author explicitly supplied and authorized integration of their mineru SKILL.md and references/desk-local.md. The adapted copies are bundled under references/mineru, with portable discovery and preparation-first routing. This supersedes earlier blanket exclusion of those two files only. No blanket license is asserted for the historical wrapper directory; its cloud scripts remain excluded. The Desk application, engines, models, credentials and generated documents are not bundled. The application remains a separately installed local dependency. No separate MinerU Skill installation is required.

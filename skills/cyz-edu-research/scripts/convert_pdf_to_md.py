@@ -48,6 +48,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--title", help="Display title; defaults to PDF metadata or filename")
     parser.add_argument("--check-cache", action="store_true", help="Read-only cache probe; exit 3 means conversion needed")
     parser.add_argument("--mineru-task", type=Path, help="Completed local Desk task JSON exported through Codex.ps1")
+    parser.add_argument("--fallback-reason", default="", help="Explicit last-resort native conversion: record failed Desk preparation/recovery or the user's choice")
     parser.add_argument(
         "--source-txt",
         type=Path,
@@ -927,6 +928,7 @@ def build_report(manifest: dict[str, Any]) -> str:
 - PDF 页数：{manifest['page_count']}
 - 生成时间：`{manifest['generated_at_utc']}`
 - 提取来源：`{manifest['extraction_source']}`
+- 备用转换原因：{manifest.get('local_fallback', {}).get('reason', '不适用（Desk 导入、旧缓存或既有 TXT 迁移）')}
 {txt_line}- 转换模式：`{manifest['conversion_mode']}`
 - DPI：{manifest['dpi']}
 - 正文文本块：{stats.get('text_blocks', 0)}
@@ -1131,6 +1133,16 @@ def main() -> int:
             print(cleanup_message)
         return 0
 
+    fallback_reason = args.fallback_reason.strip()
+    if args.mineru_task is None and source_txt is None and not fallback_reason:
+        print(
+            "MINERU_REQUIRED: read references/mineru/SKILL.md and prepare local Desk first. "
+            "Missing global Skill is not a fallback reason. Use --mineru-task for completed "
+            "Desk output; only a documented last resort may use --fallback-reason.",
+            file=sys.stderr,
+        )
+        return 2
+
     output_dir.parent.mkdir(parents=True, exist_ok=True)
     prepared_dir = Path(
         tempfile.mkdtemp(prefix=f".{output_dir.name}.staging-", dir=output_dir.parent)
@@ -1210,6 +1222,8 @@ def main() -> int:
                 ocr_available=False,
                 unrecognized_pages=list(stats.get("ocr_pages", [])),
             )
+            if source_txt is None:
+                manifest["local_fallback"]["reason"] = fallback_reason
         atomic_text(prepared_dir / "paper.md", markdown)
         atomic_json(prepared_dir / "source_map.json", source_map)
         atomic_json(prepared_dir / "conversion_manifest.json", manifest)

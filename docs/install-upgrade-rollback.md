@@ -4,9 +4,9 @@
 
 - Python 3.11 or later.
 - The release ZIP and its matching entry in `SHA256SUMS.txt`.
-- Separately installed `humanizer-zh`, `humanizer`, and local `mineru` dependencies when their features are needed.
+- Separately installed `humanizer-zh` and `humanizer` when their features are needed. Workflow 0.3.1 includes the user's MinerU Desk entry Skill; no separate global mineru Skill installation is needed.
 
-MinerU Desk, its wrapper Skill, model weights, personal PDFs, and generated caches are not part of this release.
+MinerU Desk, model weights, personal PDFs, and generated caches are not part of this release. Read the embedded references/mineru/SKILL.md before PDF parsing; if Desk is missing, follow its preparation instructions instead of immediately using native conversion.
 
 ## Verify
 

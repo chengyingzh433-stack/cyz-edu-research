@@ -93,11 +93,11 @@ py -3.11 "$skillDir/scripts/check_semantic_lock.py" "改写前.md" "改写后.md
 
 ## 5. PDF 解析和可选环境
 
-本地 MinerU 路线需要兼容的 `mineru` Skill、MinerU Desk 和本地模型。实测环境为 Desk 0.3.1、MinerU 3.4.5、CPU、本地 Pipeline、离线模式。包装 Skill 来源与再分发许可尚未确认，发布页没有提供它的安装包。
+0.3.0 的本地 MinerU 路线需要另备接入 Skill；0.3.1 源码已按作者授权内置其自写的 mineru 主文件与 Desk 接口说明，入口为 references/mineru/SKILL.md，不再要求全局另装同名 Skill。Desk 程序和本地模型仍是外部条件。已验证接口为 Desk 0.3.1、MinerU 3.4.5、CPU、本地 Pipeline、离线模式；未打包历史云端脚本。
 
 若本机已有兼容安装，按其 `SKILL.md` 和工作流 `pdf-reading.md` 检查运行时。先探测缓存，已有有效缓存时直接复用；任务已提交但未完成时继续查询同一任务 ID。不要把认证数据、模型或个人 PDF 放进安装包。
 
-没有 MinerU 时，可按文档评估 PyMuPDF 原生提取回退；缺少库要说明，扫描页、复杂表格、公式及定位不清的内容应标记风险。主 Skill 安装成功不等于本地 PDF 路线已验收。
+没有 Desk 时先按内置 Skill 定位、获取并校验安装包，再检查运行时和模型，不能直接用电脑自带的转换。只有准备/修复确实失败或用户明确选择备用转换，才显式传入 --fallback-reason；原因写入清单与报告。扫描页、复杂表格、公式及定位不清的内容应标记风险。主 Skill 安装成功不等于本地 PDF 路线已验收。
 
 ## 6. 给用户的安装结果
 
